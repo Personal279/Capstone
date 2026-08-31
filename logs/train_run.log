@@ -1,0 +1,67 @@
+INFO: Created TensorFlow Lite XNNPACK delegate for CPU.
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+W0000 00:00:1788149493.792801  893057 inference_feedback_manager.cc:114] Feedback manager requires a model with a single signature inference. Disabling support for feedback tensors.
+W0000 00:00:1788149493.804326  893064 inference_feedback_manager.cc:114] Feedback manager requires a model with a single signature inference. Disabling support for feedback tensors.
+W0000 00:00:1788149493.911937  893065 landmark_projection_calculator.cc:186] Using NORM_RECT without IMAGE_DIMENSIONS is only supported for the square ROI. Provide IMAGE_DIMENSIONS or use PROJECTION_MATRIX.
+Using device: cuda
+
+############################################################
+# EXPERIMENT C
+############################################################
+Fit: 35056 images / 85 patients
+Val: 4791 images / 15 patients
+Test: 13428 images / 26 patients
+[fit] 35056 usable images (0 skipped -- FAI re-extraction failed)
+[val] 4791 usable images (0 skipped -- FAI re-extraction failed)
+[test] 13428 usable images (0 skipped -- FAI re-extraction failed)
+Epoch 1/20 | train_loss=1.4458 | val_acc=44.42% | val_kappa=0.2910
+  -> new best (val_kappa=0.2910), checkpoint saved
+Epoch 2/20 | train_loss=1.2114 | val_acc=45.77% | val_kappa=0.3523
+  -> new best (val_kappa=0.3523), checkpoint saved
+Epoch 3/20 | train_loss=1.1194 | val_acc=45.82% | val_kappa=0.3575
+  -> new best (val_kappa=0.3575), checkpoint saved
+Epoch 4/20 | train_loss=1.0515 | val_acc=48.13% | val_kappa=0.3784
+  -> new best (val_kappa=0.3784), checkpoint saved
+Epoch 5/20 | train_loss=1.0011 | val_acc=50.28% | val_kappa=0.4092
+  -> new best (val_kappa=0.4092), checkpoint saved
+Epoch 6/20 | train_loss=0.9600 | val_acc=47.92% | val_kappa=0.3852
+Epoch 7/20 | train_loss=0.9201 | val_acc=49.36% | val_kappa=0.3922
+Epoch 8/20 | train_loss=0.8855 | val_acc=47.13% | val_kappa=0.4486
+  -> new best (val_kappa=0.4486), checkpoint saved
+Epoch 9/20 | train_loss=0.8574 | val_acc=49.97% | val_kappa=0.4535
+  -> new best (val_kappa=0.4535), checkpoint saved
+Epoch 10/20 | train_loss=0.8278 | val_acc=46.78% | val_kappa=0.4187
+Epoch 11/20 | train_loss=0.8030 | val_acc=45.92% | val_kappa=0.4510
+Epoch 12/20 | train_loss=0.7800 | val_acc=50.14% | val_kappa=0.4425
+Epoch 13/20 | train_loss=0.7358 | val_acc=48.82% | val_kappa=0.4441
+Epoch 14/20 | train_loss=0.7131 | val_acc=49.32% | val_kappa=0.4683
+  -> new best (val_kappa=0.4683), checkpoint saved
+Epoch 15/20 | train_loss=0.7011 | val_acc=49.82% | val_kappa=0.4666
+Epoch 16/20 | train_loss=0.6898 | val_acc=48.53% | val_kappa=0.4475
+Epoch 17/20 | train_loss=0.6782 | val_acc=50.16% | val_kappa=0.4445
+Epoch 18/20 | train_loss=0.6521 | val_acc=49.76% | val_kappa=0.4749
+  -> new best (val_kappa=0.4749), checkpoint saved
+Epoch 19/20 | train_loss=0.6486 | val_acc=48.95% | val_kappa=0.4581
+Epoch 20/20 | train_loss=0.6382 | val_acc=49.63% | val_kappa=0.4269
+
+=======================================================
+Experiment C — FINAL TEST RESULTS
+=======================================================
+Exact-match accuracy:       40.13%
++/-1-grade accuracy:        63.25%
+Macro F1:                   0.3793
+Quadratic weighted kappa:   0.2651
+
+Grade   Precision   Recall    F1        Support   
+1       0.381       0.494     0.430     3309      
+2       0.351       0.564     0.433     1948      
+3       0.239       0.239     0.239     1662      
+4       0.346       0.364     0.355     1468      
+5       0.617       0.342     0.440     5041      
+
+Confusion matrix (rows=true, cols=predicted, grades 1-5):
+[[1634  842  292  256  285]
+ [ 318 1099  276   75  180]
+ [ 364  511  398  130  259]
+ [ 242  213  133  535  345]
+ [1735  469  565  550 1722]]

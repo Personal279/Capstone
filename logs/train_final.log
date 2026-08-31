@@ -1,0 +1,66 @@
+Using device: cuda
+Fit: 35056 images / 85 patients
+Val: 4791 images / 15 patients
+Test: 13428 images / 26 patients
+
+Class weights (sqrt-dampened): [0.85004744 0.82380609 1.33891273 1.68343491 0.9009791 ]
+Epoch 1/20 | train_loss=1.1105 | val_acc=58.84% | val_kappa=0.4731
+  -> new best (val_kappa=0.4731), checkpoint saved
+Epoch 2/20 | train_loss=0.9072 | val_acc=60.97% | val_kappa=0.5458
+  -> new best (val_kappa=0.5458), checkpoint saved
+Epoch 3/20 | train_loss=0.8248 | val_acc=62.39% | val_kappa=0.5522
+  -> new best (val_kappa=0.5522), checkpoint saved
+Epoch 4/20 | train_loss=0.7703 | val_acc=59.57% | val_kappa=0.6005
+  -> new best (val_kappa=0.6005), checkpoint saved
+Epoch 5/20 | train_loss=0.7196 | val_acc=65.92% | val_kappa=0.6063
+  -> new best (val_kappa=0.6063), checkpoint saved
+Epoch 6/20 | train_loss=0.6808 | val_acc=58.88% | val_kappa=0.5812
+Epoch 7/20 | train_loss=0.6419 | val_acc=55.60% | val_kappa=0.5605
+Epoch 8/20 | train_loss=0.6086 | val_acc=57.57% | val_kappa=0.5566
+Epoch 9/20 | train_loss=0.5795 | val_acc=58.11% | val_kappa=0.5436
+Epoch 10/20 | train_loss=0.5577 | val_acc=57.90% | val_kappa=0.5366
+  -> early stopping (no val improvement for 5 epochs)
+
+=======================================================
+FINAL — FRAME-LEVEL TEST RESULTS
+=======================================================
+Exact-match accuracy:       44.03%
++/-1-grade accuracy:        65.88%
+Macro F1:                   0.4295
+Quadratic weighted kappa:   0.3388
+
+Grade   Precision   Recall    F1        Support   
+1       0.460       0.525     0.491     3309      
+2       0.355       0.677     0.466     1948      
+3       0.247       0.307     0.274     1662      
+4       0.467       0.482     0.474     1468      
+5       0.693       0.325     0.443     5041      
+
+Confusion matrix (rows=true, cols=predicted, grades 1-5):
+[[1738  838  473  116  144]
+ [ 209 1319  195   67  158]
+ [ 203  703  511   80  165]
+ [ 314   83  107  707  257]
+ [1311  769  779  544 1638]]
+
+=======================================================
+FINAL — PATIENT-LEVEL (MAJORITY VOTE) TEST RESULTS (26 patients)
+=======================================================
+Exact-match accuracy:       34.62%
++/-1-grade accuracy:        73.08%
+Macro F1:                   0.3133
+Quadratic weighted kappa:   0.4609
+
+Grade   Precision   Recall    F1        Support   
+1       0.600       0.429     0.500     7         
+2       0.125       0.250     0.167     4         
+3       0.000       0.000     0.000     1         
+4       0.500       0.500     0.500     4         
+5       0.600       0.300     0.400     10        
+
+Confusion matrix (rows=true, cols=predicted, grades 1-5):
+[[3 3 1 0 0]
+ [1 1 1 0 1]
+ [0 1 0 0 0]
+ [0 0 1 2 1]
+ [1 3 1 2 3]]

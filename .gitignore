@@ -2,3 +2,9 @@ Capstone-master/
 palsynet_frames/
 *.jpg
 *.png
+
+venv/
+YFPP_downloads/
+archive/
+*.pt
+__pycache__/
