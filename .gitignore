@@ -8,3 +8,7 @@ YFPP_downloads/
 archive/
 *.pt
 __pycache__/
+
+venv_convert/
+tflite_export/
+calibration_image_sample_data_*.npy
