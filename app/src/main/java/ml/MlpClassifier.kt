@@ -1,101 +1,48 @@
 package com.pes.facialparalysis.ml
 
 import android.content.Context
-import org.json.JSONObject
-import kotlin.math.exp
+import android.graphics.Bitmap
+import org.tensorflow.lite.Interpreter
+import org.tensorflow.lite.support.common.FileUtil
 
 class MlpClassifier(context: Context) {
 
-    private val mean: DoubleArray
-    private val scale: DoubleArray
-    private val coefs: Array<Array<DoubleArray>>   // [layer][input][output]
-    private val intercepts: Array<DoubleArray>       // [layer][output]
-    private val classes: IntArray
+    private val interpreter: Interpreter = Interpreter(
+        FileUtil.loadMappedFile(context, "severity_model_float32.tflite")
+    )
 
-    init {
-        val scalerJson = JSONObject(
-            context.assets.open("scaler.json").bufferedReader().use { it.readText() }
-        )
-        mean = jsonArrayToDoubleArray(scalerJson.getJSONArray("mean"))
-        scale = jsonArrayToDoubleArray(scalerJson.getJSONArray("scale"))
-
-        val mlpJson = JSONObject(
-            context.assets.open("mlp.json").bufferedReader().use { it.readText() }
-        )
-
-        val coefsJsonArr = mlpJson.getJSONArray("coefs")
-        coefs = Array(coefsJsonArr.length()) { layerIdx ->
-            val layerArr = coefsJsonArr.getJSONArray(layerIdx)
-            Array(layerArr.length()) { rowIdx ->
-                jsonArrayToDoubleArray(layerArr.getJSONArray(rowIdx))
-            }
-        }
-
-        val interceptsJsonArr = mlpJson.getJSONArray("intercepts")
-        intercepts = Array(interceptsJsonArr.length()) { layerIdx ->
-            jsonArrayToDoubleArray(interceptsJsonArr.getJSONArray(layerIdx))
-        }
-
-        val classesJsonArr = mlpJson.getJSONArray("classes")
-        classes = IntArray(classesJsonArr.length()) { classesJsonArr.getInt(it) }
-    }
-
-    private fun jsonArrayToDoubleArray(arr: org.json.JSONArray): DoubleArray {
-        return DoubleArray(arr.length()) { arr.getDouble(it) }
-    }
-
-    /** Scales input using StandardScaler: (x - mean) / scale */
-    private fun scaleInput(input: DoubleArray): DoubleArray {
-        return DoubleArray(input.size) { i -> (input[i] - mean[i]) / scale[i] }
-    }
-
-    private fun relu(x: DoubleArray): DoubleArray = DoubleArray(x.size) { if (x[it] > 0) x[it] else 0.0 }
-
-    private fun softmax(x: DoubleArray): DoubleArray {
-        val max = x.maxOrNull() ?: 0.0
-        val exps = DoubleArray(x.size) { exp(x[it] - max) }
-        val sum = exps.sum()
-        return DoubleArray(x.size) { exps[it] / sum }
-    }
-
-    /** Dense layer: output[j] = sum_i(input[i] * weight[i][j]) + bias[j] */
-    private fun dense(input: DoubleArray, weights: Array<DoubleArray>, bias: DoubleArray): DoubleArray {
-        val outputSize = bias.size
-        val output = DoubleArray(outputSize)
-        for (j in 0 until outputSize) {
-            var sum = 0.0
-            for (i in input.indices) {
-                sum += input[i] * weights[i][j]
-            }
-            output[j] = sum + bias[j]
-        }
-        return output
-    }
+    private val imageMean = floatArrayOf(0.485f, 0.456f, 0.406f)
+    private val imageStd = floatArrayOf(0.229f, 0.224f, 0.225f)
 
     data class PredictionResult(val predictedGrade: Int, val probabilities: Map<Int, Double>)
 
-    /** fusedInput must be size 2053: [eye, mouth, brow, cheek, jaw, ...2048 resnet embedding values] */
-    fun predict(fusedInput: DoubleArray): PredictionResult {
-        require(fusedInput.size == mean.size) {
-            "Input size ${fusedInput.size} does not match expected ${mean.size}"
+    fun predict(bitmap: Bitmap): PredictionResult {
+        val resized = Bitmap.createScaledBitmap(bitmap, 224, 224, true)
+        val input = Array(1) { Array(224) { Array(224) { FloatArray(3) } } }
+
+        for (y in 0 until 224) {
+            for (x in 0 until 224) {
+                val pixel = resized.getPixel(x, y)
+                val r = ((pixel shr 16) and 0xFF) / 255.0f
+                val g = ((pixel shr 8) and 0xFF) / 255.0f
+                val b = (pixel and 0xFF) / 255.0f
+                input[0][y][x][0] = (r - imageMean[0]) / imageStd[0]
+                input[0][y][x][1] = (g - imageMean[1]) / imageStd[1]
+                input[0][y][x][2] = (b - imageMean[2]) / imageStd[2]
+            }
         }
 
-        var activation = scaleInput(fusedInput)
+        val output = Array(1) { FloatArray(5) }
+        interpreter.run(input, output)
 
-        // Hidden layers (all but last) use ReLU
-        for (layerIdx in 0 until coefs.size - 1) {
-            activation = relu(dense(activation, coefs[layerIdx], intercepts[layerIdx]))
-        }
-
-        // Final layer uses softmax
-        val logits = dense(activation, coefs.last(), intercepts.last())
-        val probs = softmax(logits)
-
+        val classes = intArrayOf(1, 2, 3, 4, 5)
+        val probs = output[0]
         val maxIdx = probs.indices.maxByOrNull { probs[it] } ?: 0
         val predictedGrade = classes[maxIdx]
-
-        val probMap = classes.indices.associate { classes[it] to probs[it] }
+        val probMap = classes.indices.associate { classes[it] to probs[it].toDouble() }
 
         return PredictionResult(predictedGrade, probMap)
     }
+
+    fun close() = interpreter.close()
 }

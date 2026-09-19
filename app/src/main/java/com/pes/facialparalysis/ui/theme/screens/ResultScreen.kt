@@ -28,10 +28,8 @@ import com.pes.facialparalysis.data.CapturedVideoHolder
 import com.pes.facialparalysis.data.SelectedPatientHolder
 import com.pes.facialparalysis.ml.ExplanationGenerator
 import com.pes.facialparalysis.ml.FaceLandmarkDetector
-import com.pes.facialparalysis.ml.FaiCalculator
 import com.pes.facialparalysis.ml.FrameExtractor
 import com.pes.facialparalysis.ml.MlpClassifier
-import com.pes.facialparalysis.ml.ResNetFeatureExtractor
 import com.pes.facialparalysis.ui.theme.AppColors
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -73,47 +71,32 @@ fun ResultScreen(onDone: () -> Unit) {
                 }
 
                 val landmarkDetector = FaceLandmarkDetector(context)
-                val resnetExtractor = ResNetFeatureExtractor(context)
                 val mlp = MlpClassifier(context)
 
                 val perFrameGrades = mutableListOf<Int>()
                 val perFrameProbabilities = mutableListOf<Map<Int, Double>>()
-                var lastBreakdown: FaiCalculator.FaiBreakdown? = null
                 var validFrames = 0
 
                 for (frame in framesToProcess) {
                     val landmarkResult = landmarkDetector.detect(frame) ?: continue
-                    val landmarks = landmarkResult.faceLandmarks()[0]
-                    val breakdown = FaiCalculator.computeBreakdown(landmarks, frame.width, frame.height)
-                    lastBreakdown = breakdown
-
-                    val embedding = resnetExtractor.extract(frame)
-
-                    // 5 FAI features + 2048 ResNet features = 2053, must match scaler.json/mlp.json
-                    val fused = DoubleArray(2053)
-                    val faiValues = breakdown.toFeatureArray() // [eye, mouth, brow, cheek, jaw]
-                    for (i in faiValues.indices) fused[i] = faiValues[i]
-                    for (i in embedding.indices) fused[i + 5] = embedding[i].toDouble()
-
-                    val prediction = mlp.predict(fused)
+                    val prediction = mlp.predict(frame)
                     perFrameGrades.add(prediction.predictedGrade)
                     perFrameProbabilities.add(prediction.probabilities)
                     validFrames++
                 }
 
                 landmarkDetector.close()
-                resnetExtractor.close()
+                mlp.close()
 
-                if (validFrames == 0 || lastBreakdown == null) {
+                if (validFrames == 0) {
                     return@withContext ScreenResult(error = "No face detected. Please retake with a clear frontal face.")
                 }
 
-                // Model now has 4 classes (1-4), grade 5 was dropped during training
-                val avgProbabilities = (1..4).associateWith { grade ->
+                val avgProbabilities = (1..5).associateWith { grade ->
                     perFrameProbabilities.map { it[grade] ?: 0.0 }.average()
                 }
                 val finalGrade = avgProbabilities.maxByOrNull { it.value }?.key ?: perFrameGrades.first()
-                val explanation = ExplanationGenerator.generate(lastBreakdown, finalGrade)
+                val explanation = ExplanationGenerator.generate(finalGrade)
 
                 ScreenResult(
                     grade = finalGrade,
@@ -132,7 +115,8 @@ fun ResultScreen(onDone: () -> Unit) {
                 1 -> "Normal"
                 2 -> "Mild"
                 3 -> "Moderate"
-                else -> "Moderately severe"
+                4 -> "Moderately severe"
+                else -> "Severe"
             }
             val confidence = outcome.probabilities[outcome.grade] ?: 0.0
             val record = AssessmentRecord(
@@ -245,10 +229,10 @@ private fun ResultState(grade: Int, probabilities: Map<Int, Double>, framesUsed:
         1 -> "Normal"
         2 -> "Mild"
         3 -> "Moderate"
-        else -> "Moderately severe"
+        4 -> "Moderately severe"
+        else -> "Severe"
     }
 
-    // Summary card — mirrors PatientCard's avatar + text row layout
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
@@ -300,7 +284,6 @@ private fun ResultState(grade: Int, probabilities: Map<Int, Double>, framesUsed:
 
     Spacer(modifier = Modifier.height(12.dp))
 
-    // Explanation card
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
@@ -336,7 +319,6 @@ private fun ResultState(grade: Int, probabilities: Map<Int, Double>, framesUsed:
 
     Spacer(modifier = Modifier.height(12.dp))
 
-    // Confidence breakdown card
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
