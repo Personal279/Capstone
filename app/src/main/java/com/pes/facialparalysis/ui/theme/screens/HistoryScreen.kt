@@ -159,7 +159,7 @@ private fun GradeLegend() {
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(14.dp)
     ) {
-        listOf(1, 2, 3, 4, 5, 6).forEach { grade ->
+        listOf(1, 2, 3, 4, 5).forEach { grade ->
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Box(
                     modifier = Modifier

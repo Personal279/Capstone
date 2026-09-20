@@ -175,12 +175,6 @@ fun HomeScreen(
 
             Spacer(modifier = Modifier.weight(1f))
 
-            Text(
-                text = "Powered by on-device AI",
-                fontSize = 11.sp,
-                color = AppColors.TextSecondary,
-                modifier = Modifier.padding(bottom = 20.dp)
-            )
         }
     }
 }
