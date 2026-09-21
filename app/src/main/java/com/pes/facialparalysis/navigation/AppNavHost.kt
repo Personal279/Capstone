@@ -12,6 +12,8 @@ import com.pes.facialparalysis.ui.screens.PatientSelectionScreen
 import com.pes.facialparalysis.ui.screens.UploadPreviewScreen
 import com.pes.facialparalysis.ui.screens.VideoCaptureScreen
 import com.pes.facialparalysis.ui.screens.ResultScreen
+import com.pes.facialparalysis.ui.screens.XaiExplanationScreen
+import com.pes.facialparalysis.ui.screens.DigitalTwinScreen
 @Composable
 fun AppNavHost(
     navController: NavHostController = rememberNavController()
@@ -42,6 +44,9 @@ fun AppNavHost(
                 },
                 onHistoryClick = {
                     navController.navigate(Screen.History.route)
+                },
+                onDigitalTwinClick = {
+                    navController.navigate(Screen.DigitalTwin.route)
                 },
                 onSwitchPatientClick = {
                     navController.navigate(Screen.PatientSelection.route)
@@ -84,7 +89,25 @@ fun AppNavHost(
                             inclusive = true
                         }
                     }
+                },
+                onViewExplanation = {
+                    navController.navigate(Screen.XaiExplanation.route)
+                },
+                onViewDigitalTwin = {
+                    navController.navigate(Screen.DigitalTwin.route)
                 }
+            )
+        }
+
+        composable(Screen.XaiExplanation.route) {
+            XaiExplanationScreen(
+                onBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(Screen.DigitalTwin.route) {
+            DigitalTwinScreen(
+                onBack = { navController.popBackStack() }
             )
         }
 

@@ -47,6 +47,7 @@ fun HomeScreen(
     onRecordClick: () -> Unit = {},
     onCameraClick: () -> Unit = {},
     onHistoryClick: () -> Unit = {},
+    onDigitalTwinClick: () -> Unit = {},
     onSwitchPatientClick: () -> Unit = {}
 ) {
     Column(
@@ -172,6 +173,8 @@ fun HomeScreen(
             ActionButton(text = "Record Video", icon = Icons.Filled.Videocam, filled = false, onClick = onRecordClick)
             Spacer(modifier = Modifier.height(10.dp))
             ActionButton(text = "View History", icon = Icons.Filled.History, filled = false, onClick = onHistoryClick)
+            Spacer(modifier = Modifier.height(10.dp))
+            ActionButton(text = "Digital Twin", icon = Icons.Filled.Timeline, filled = false, onClick = onDigitalTwinClick)
 
             Spacer(modifier = Modifier.weight(1f))
 
