@@ -1,12 +1,19 @@
 package com.pes.facialparalysis
 
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -26,9 +33,17 @@ import com.pes.facialparalysis.ui.theme.AppColors
 import com.pes.facialparalysis.ui.theme.FacialParalysisTheme
 
 class MainActivity : ComponentActivity() {
+    private val notificationPermissionLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { /* reminders still work in-app either way */ }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
+        ) {
+            notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+        }
         setContent {
             FacialParalysisTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
@@ -47,6 +62,7 @@ fun HomeScreen(
     onRecordClick: () -> Unit = {},
     onCameraClick: () -> Unit = {},
     onHistoryClick: () -> Unit = {},
+    onDigitalTwinClick: () -> Unit = {},
     onSwitchPatientClick: () -> Unit = {}
 ) {
     Column(
@@ -86,6 +102,7 @@ fun HomeScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .verticalScroll(rememberScrollState())
                 .padding(horizontal = 20.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -172,9 +189,10 @@ fun HomeScreen(
             ActionButton(text = "Record Video", icon = Icons.Filled.Videocam, filled = false, onClick = onRecordClick)
             Spacer(modifier = Modifier.height(10.dp))
             ActionButton(text = "View History", icon = Icons.Filled.History, filled = false, onClick = onHistoryClick)
+            Spacer(modifier = Modifier.height(10.dp))
+            ActionButton(text = "Digital Twin", icon = Icons.Filled.Timeline, filled = false, onClick = onDigitalTwinClick)
 
-            Spacer(modifier = Modifier.weight(1f))
-
+            Spacer(modifier = Modifier.height(24.dp))
         }
     }
 }

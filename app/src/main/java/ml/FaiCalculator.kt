@@ -72,4 +72,41 @@ object FaiCalculator {
     /** Returns the 5-dim feature array in training order: [eye, mouth, brow, cheek, jaw] */
     fun compute(landmarks: List<NormalizedLandmark>, width: Int, height: Int): DoubleArray =
         computeBreakdown(landmarks, width, height).toFeatureArray()
+
+    /** One bilateral facial region: its name, asymmetry %, and which side measured smaller. */
+    data class RegionAsymmetry(
+        val region: String,
+        val asymmetryPercent: Double,
+        /** "left" or "right" — whichever side's raw landmark distance was smaller. Purely
+         * geometric (not a claim about which side is clinically affected). */
+        val smallerSide: String
+    )
+
+    /**
+     * Same 5 regions as [computeBreakdown], but also reports which side's raw distance was
+     * smaller, so callers can point at a specific left/right region rather than just the
+     * bilateral pair. Used for XAI region explanations — every number here is a real
+     * measurement from the detected landmarks, nothing invented.
+     */
+    fun computeDetailed(
+        landmarks: List<NormalizedLandmark>,
+        width: Int,
+        height: Int
+    ): List<RegionAsymmetry> {
+        fun region(name: String, lIdx1: Int, lIdx2: Int, rIdx1: Int, rIdx2: Int): RegionAsymmetry {
+            val l = dist(landmarks[lIdx1], landmarks[lIdx2], width, height)
+            val r = dist(landmarks[rIdx1], landmarks[rIdx2], width, height)
+            val pct = abs(l - r) / max(l, max(r, 1e-5)) * 100.0
+            val smaller = if (l <= r) "left" else "right"
+            return RegionAsymmetry(name, pct, smaller)
+        }
+
+        return listOf(
+            region("eye", 159, 145, 386, 374),
+            region("mouth", 0, 61, 0, 291),
+            region("brow", 4, 105, 4, 334),
+            region("cheek", 1, 234, 1, 454),
+            region("jaw", 152, 172, 152, 397)
+        )
+    }
 }
