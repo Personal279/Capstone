@@ -3,6 +3,8 @@ package com.pes.facialparalysis.data
 import android.graphics.Bitmap
 import com.google.mediapipe.tasks.components.containers.NormalizedLandmark
 import com.pes.facialparalysis.ml.FaiCalculator
+import com.pes.facialparalysis.ml.LimeExplainer
+import com.pes.facialparalysis.ml.ScanQualityChecker
 
 /**
  * Transient, in-memory-only holder for the data the "View AI Explanation" screen needs:
@@ -19,6 +21,8 @@ object XaiDataHolder {
     var probabilities: Map<Int, Double> = emptyMap()
     var summarySentence: String = ""
     var bulletLabels: List<String> = emptyList()
+    var limeResult: LimeExplainer.LimeResult? = null
+    var scanQuality: ScanQualityChecker.ScanQualityResult? = null
 
     fun clear() {
         bitmap?.recycle()
@@ -29,5 +33,7 @@ object XaiDataHolder {
         probabilities = emptyMap()
         summarySentence = ""
         bulletLabels = emptyList()
+        limeResult = null
+        scanQuality = null
     }
 }

@@ -27,6 +27,9 @@ fun AppNavHost(
             PatientSelectionScreen(
                 onPatientSelected = {
                     navController.navigate(Screen.Home.route)
+                },
+                onViewDigitalTwin = {
+                    navController.navigate(Screen.DigitalTwin.route)
                 }
             )
         }

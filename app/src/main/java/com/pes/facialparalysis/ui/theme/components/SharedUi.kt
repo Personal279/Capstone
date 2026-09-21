@@ -20,8 +20,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.pes.facialparalysis.ml.FaiCalculator
+import com.pes.facialparalysis.ml.LimeExplainer
 import com.pes.facialparalysis.ui.theme.AppColors
 import com.google.mediapipe.tasks.components.containers.NormalizedLandmark
+import androidx.compose.runtime.getValue
 
 /**
  * The one place the app's mandatory AI-disclosure wording lives, so it stays consistent
@@ -57,6 +59,113 @@ fun DisclaimerBanner(modifier: Modifier = Modifier, text: String = AiDisclosure.
                 lineHeight = 16.sp,
                 color = AppColors.TextSecondary,
                 modifier = Modifier.align(Alignment.CenterVertically)
+            )
+        }
+    }
+}
+
+/** Prominent banner mandated for every screen that shows an AI explanation. */
+@Composable
+fun NotADiagnosisBanner(modifier: Modifier = Modifier) {
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(10.dp),
+        colors = CardDefaults.cardColors(containerColor = AppColors.Warning.copy(alpha = 0.14f)),
+        border = BorderStroke(1.dp, AppColors.Warning.copy(alpha = 0.4f)),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+    ) {
+        Column(modifier = Modifier.padding(14.dp)) {
+            Text(
+                text = "AI EXPLANATION — NOT A DIAGNOSIS",
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Bold,
+                letterSpacing = 0.5.sp,
+                color = AppColors.Warning
+            )
+            Spacer(modifier = Modifier.height(6.dp))
+            Text(
+                text = "This explanation describes how the AI interpreted the scan. It may be " +
+                    "incorrect and does not confirm whether you have or do not have facial paralysis. " +
+                    "This tool does not replace assessment by a qualified healthcare professional.",
+                fontSize = 12.sp,
+                lineHeight = 16.sp,
+                color = AppColors.TextPrimary
+            )
+        }
+    }
+}
+
+/** Bars showing each region's LIME-fitted contribution to the model's predicted grade. */
+@Composable
+fun RegionImportanceBars(
+    importance: List<LimeExplainer.RegionImportance>,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = AppColors.Surface),
+        border = BorderStroke(1.dp, AppColors.Border),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(
+                text = "AI explanation of important facial regions",
+                fontSize = 13.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = AppColors.TextPrimary
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = "How much each region's visibility pushed the model toward its predicted grade (LIME).",
+                fontSize = 11.sp,
+                color = AppColors.TextSecondary
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+            importance.forEach { region ->
+                RegionImportanceRow(region)
+                Spacer(modifier = Modifier.height(10.dp))
+            }
+        }
+    }
+}
+
+@Composable
+private fun RegionImportanceRow(region: LimeExplainer.RegionImportance) {
+    val animatedProgress by animateFloatAsState(
+        targetValue = region.normalizedMagnitude.toFloat(),
+        animationSpec = tween(durationMillis = 500),
+        label = "importance"
+    )
+    val barColor = when (region.direction) {
+        LimeExplainer.Direction.SUPPORTS -> AppColors.Primary
+        LimeExplainer.Direction.OPPOSES -> Color(0xFFB5651D)
+        LimeExplainer.Direction.NEGLIGIBLE -> AppColors.TextSecondary.copy(alpha = 0.4f)
+    }
+    val label = when (region.direction) {
+        LimeExplainer.Direction.SUPPORTS -> "Higher contribution"
+        LimeExplainer.Direction.OPPOSES -> "Opposed prediction"
+        LimeExplainer.Direction.NEGLIGIBLE -> "Low contribution"
+    }
+    Column {
+        Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
+            Text(region.displayLabel, fontSize = 13.sp, color = AppColors.TextPrimary)
+            Text(label, fontSize = 11.sp, color = AppColors.TextSecondary)
+        }
+        Spacer(modifier = Modifier.height(4.dp))
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(7.dp)
+                .clip(RoundedCornerShape(4.dp))
+                .background(AppColors.SurfaceMuted)
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .fillMaxWidth(animatedProgress.coerceIn(0.02f, 1f))
+                    .clip(RoundedCornerShape(4.dp))
+                    .background(barColor)
             )
         }
     }
@@ -208,6 +317,85 @@ fun LandmarkAsymmetryOverlay(
                         center = center
                     )
                 }
+            }
+        }
+    }
+}
+
+/**
+ * Landmark importance mapping: highlights each facial region using its LIME-fitted contribution
+ * to the model's prediction, so intensity here communicates "influence on the AI's output" — not
+ * a claim about where paralysis is present. Regions that opposed the prediction are drawn in a
+ * different hue from regions that supported it.
+ */
+@Composable
+fun LimeImportanceOverlay(
+    landmarks: List<NormalizedLandmark>,
+    importance: List<LimeExplainer.RegionImportance>,
+    modifier: Modifier = Modifier
+) {
+    // Same landmark points LIME actually scored, so the overlay highlights exactly what was tested.
+    val regionIndices = LimeExplainer.regionLandmarkIndices
+    val importanceByRegion = importance.associateBy { it.region }
+    val supportsColor = AppColors.Primary
+    val opposesColor = Color(0xFFB5651D)
+
+    Canvas(modifier = modifier) {
+        regionIndices.forEach { (region, indices) ->
+            val info = importanceByRegion[region] ?: return@forEach
+            val color = when (info.direction) {
+                LimeExplainer.Direction.SUPPORTS -> supportsColor
+                LimeExplainer.Direction.OPPOSES -> opposesColor
+                LimeExplainer.Direction.NEGLIGIBLE -> Color.Gray
+            }
+            val weight = info.normalizedMagnitude.coerceIn(0.1, 1.0)
+            indices.forEach { idx ->
+                if (idx < landmarks.size) {
+                    val lm = landmarks[idx]
+                    val center = Offset(lm.x() * size.width, lm.y() * size.height)
+                    drawCircle(
+                        color = color.copy(alpha = (0.22 * weight).toFloat()),
+                        radius = (14.dp.toPx() * weight).toFloat(),
+                        center = center
+                    )
+                }
+            }
+        }
+    }
+}
+
+/** List of possible scan-quality factors — a mix of on-device–detected checks and generic,
+ * always-worded-as-possible factors that were not specifically verified. */
+@Composable
+fun PossibleScanIssuesCard(
+    detectedFactors: List<String>,
+    unverifiedFactors: List<String>,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = AppColors.Surface),
+        border = BorderStroke(1.dp, AppColors.Border),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text("Could this result be incorrect?", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = AppColors.TextPrimary)
+            Spacer(modifier = Modifier.height(8.dp))
+            if (detectedFactors.isNotEmpty()) {
+                Text("Things noticed about this scan:", fontSize = 12.sp, fontWeight = FontWeight.Medium, color = AppColors.TextPrimary)
+                Spacer(modifier = Modifier.height(4.dp))
+                detectedFactors.forEach { factor ->
+                    Text("•  $factor This may have affected the result.", fontSize = 12.sp, color = AppColors.TextPrimary, lineHeight = 16.sp)
+                    Spacer(modifier = Modifier.height(4.dp))
+                }
+                Spacer(modifier = Modifier.height(8.dp))
+            }
+            Text("Other things that may affect any scan:", fontSize = 12.sp, fontWeight = FontWeight.Medium, color = AppColors.TextSecondary)
+            Spacer(modifier = Modifier.height(4.dp))
+            unverifiedFactors.forEach { factor ->
+                Text("•  $factor", fontSize = 12.sp, color = AppColors.TextSecondary, lineHeight = 16.sp)
+                Spacer(modifier = Modifier.height(3.dp))
             }
         }
     }

@@ -32,7 +32,9 @@ import com.pes.facialparalysis.ml.ExplanationGenerator
 import com.pes.facialparalysis.ml.FaceLandmarkDetector
 import com.pes.facialparalysis.ml.FaiCalculator
 import com.pes.facialparalysis.ml.FrameExtractor
+import com.pes.facialparalysis.ml.LimeExplainer
 import com.pes.facialparalysis.ml.MlpClassifier
+import com.pes.facialparalysis.ml.ScanQualityChecker
 import com.pes.facialparalysis.ml.XaiExplainer
 import com.pes.facialparalysis.ui.theme.AppColors
 import com.pes.facialparalysis.ui.theme.components.ConfidenceBars
@@ -51,7 +53,9 @@ private data class ScreenResult(
     val xaiSummary: String = "",
     val xaiBullets: List<String> = emptyList(),
     val analyzedFrame: Bitmap? = null,
-    val analyzedLandmarks: List<NormalizedLandmark>? = null
+    val analyzedLandmarks: List<NormalizedLandmark>? = null,
+    val limeResult: LimeExplainer.LimeResult? = null,
+    val scanQuality: ScanQualityChecker.ScanQualityResult? = null
 )
 
 @Composable
@@ -107,9 +111,9 @@ fun ResultScreen(onDone: () -> Unit, onViewExplanation: () -> Unit = {}, onViewD
                 }
 
                 landmarkDetector.close()
-                mlp.close()
 
                 if (validFrames == 0) {
+                    mlp.close()
                     return@withContext ScreenResult(error = "No face detected. Please retake with a clear frontal face.")
                 }
 
@@ -118,6 +122,17 @@ fun ResultScreen(onDone: () -> Unit, onViewExplanation: () -> Unit = {}, onViewD
                 }
                 val finalGrade = avgProbabilities.maxByOrNull { it.value }?.key ?: perFrameGrades.first()
                 val explanation = ExplanationGenerator.generate(finalGrade)
+
+                // Real LIME explanation of the existing classifier's own output on the analyzed
+                // frame — reuses the same MlpClassifier instance, no new model involved.
+                val limeResult = if (firstAnalyzedFrame != null && firstAnalyzedLandmarks != null) {
+                    LimeExplainer.explain(firstAnalyzedFrame, firstAnalyzedLandmarks, finalGrade, mlp)
+                } else null
+                mlp.close()
+
+                val scanQuality = if (firstAnalyzedFrame != null && firstAnalyzedLandmarks != null) {
+                    ScanQualityChecker.analyze(firstAnalyzedFrame, firstAnalyzedLandmarks)
+                } else null
 
                 // Average each region's asymmetry % across analyzed frames; keep the
                 // smaller-side hint from whichever frame had the largest asymmetry for that region.
@@ -139,7 +154,9 @@ fun ResultScreen(onDone: () -> Unit, onViewExplanation: () -> Unit = {}, onViewD
                     xaiSummary = xai.summarySentence,
                     xaiBullets = xai.bulletLabels,
                     analyzedFrame = firstAnalyzedFrame,
-                    analyzedLandmarks = firstAnalyzedLandmarks
+                    analyzedLandmarks = firstAnalyzedLandmarks,
+                    limeResult = limeResult,
+                    scanQuality = scanQuality
                 )
             } catch (e: Exception) {
                 ScreenResult(error = "Something went wrong. Please try again.")
@@ -185,6 +202,8 @@ fun ResultScreen(onDone: () -> Unit, onViewExplanation: () -> Unit = {}, onViewD
         XaiDataHolder.probabilities = outcome.probabilities
         XaiDataHolder.summarySentence = outcome.xaiSummary
         XaiDataHolder.bulletLabels = outcome.xaiBullets
+        XaiDataHolder.limeResult = outcome.limeResult
+        XaiDataHolder.scanQuality = outcome.scanQuality
 
         result = outcome
         isLoading = false

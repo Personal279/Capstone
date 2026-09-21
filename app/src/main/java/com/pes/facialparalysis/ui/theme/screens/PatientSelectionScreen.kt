@@ -12,6 +12,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Timeline
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -32,7 +33,10 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 @Composable
-fun PatientSelectionScreen(onPatientSelected: () -> Unit) {
+fun PatientSelectionScreen(
+    onPatientSelected: () -> Unit,
+    onViewDigitalTwin: () -> Unit = {}
+) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val patients by remember {
@@ -92,11 +96,19 @@ fun PatientSelectionScreen(onPatientSelected: () -> Unit) {
         } else {
             LazyColumn(modifier = Modifier.weight(1f)) {
                 items(filteredPatients, key = { it.id }) { patient ->
-                    PatientCard(patient) {
-                        SelectedPatientHolder.patientId = patient.id
-                        SelectedPatientHolder.patientName = patient.name
-                        onPatientSelected()
-                    }
+                    PatientCard(
+                        patient = patient,
+                        onClick = {
+                            SelectedPatientHolder.patientId = patient.id
+                            SelectedPatientHolder.patientName = patient.name
+                            onPatientSelected()
+                        },
+                        onViewDigitalTwin = {
+                            SelectedPatientHolder.patientId = patient.id
+                            SelectedPatientHolder.patientName = patient.name
+                            onViewDigitalTwin()
+                        }
+                    )
                     Spacer(modifier = Modifier.height(10.dp))
                 }
             }
@@ -191,7 +203,7 @@ private fun AddPatientDialog(
 }
 
 @Composable
-private fun PatientCard(patient: Patient, onClick: () -> Unit) {
+private fun PatientCard(patient: Patient, onClick: () -> Unit, onViewDigitalTwin: () -> Unit = {}) {
     val addedStr = remember(patient.createdAt) {
         SimpleDateFormat("MMM d, yyyy", Locale.getDefault()).format(Date(patient.createdAt))
     }
@@ -239,6 +251,16 @@ private fun PatientCard(patient: Patient, onClick: () -> Unit) {
                     text = "Patient ID ${patient.id} · Added $addedStr",
                     fontSize = 12.sp,
                     color = AppColors.TextSecondary
+                )
+            }
+            // Direct, immediate access to this patient's existing Digital Twin — no new
+            // scan required, separate from the "open profile" tap target on the rest of the card.
+            IconButton(onClick = onViewDigitalTwin) {
+                Icon(
+                    imageVector = Icons.Filled.Timeline,
+                    contentDescription = "View Digital Twin",
+                    tint = AppColors.Primary,
+                    modifier = Modifier.size(20.dp)
                 )
             }
             Icon(
