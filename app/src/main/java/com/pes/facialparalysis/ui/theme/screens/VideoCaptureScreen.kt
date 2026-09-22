@@ -34,6 +34,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import com.pes.facialparalysis.data.CapturedVideoHolder
 import com.pes.facialparalysis.ui.theme.AppColors
+import com.pes.facialparalysis.ui.theme.components.clinicalBackgroundBrush
 import java.io.File
 
 @Composable
@@ -57,7 +58,7 @@ fun VideoCaptureScreen(onRecorded: () -> Unit) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(AppColors.Background)
+                .background(clinicalBackgroundBrush())
                 .padding(24.dp)
         ) {
             Spacer(modifier = Modifier.height(20.dp))

@@ -157,23 +157,58 @@ fun CaptureScreen(onCaptured: () -> Unit) {
                 .fillMaxWidth()
                 .windowInsetsPadding(WindowInsets.statusBars)
                 .background(AppColors.TextPrimary.copy(alpha = 0.55f))
-                .padding(horizontal = 20.dp, vertical = 14.dp)
+                .padding(horizontal = 20.dp, vertical = 16.dp)
         ) {
             Text(
-                text = "Align the face with the guide",
-                color = AppColors.TextOnPrimary,
-                fontSize = 14.sp,
+                text = "GUIDED CAPTURE",
+                color = AppColors.AccentAquaSoft,
+                fontSize = 12.sp,
                 fontWeight = FontWeight.SemiBold,
+                letterSpacing = 1.4.sp,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.fillMaxWidth()
             )
+            Spacer(modifier = Modifier.height(6.dp))
             Text(
-                text = "Remove spectacles · use proper lighting · neutral expression · look straight ahead",
-                color = AppColors.TextOnPrimary.copy(alpha = 0.8f),
+                text = "Find a calm, even light.",
+                color = AppColors.TextOnPrimary,
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Medium,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth()
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = "Center your face in the guide and hold a relaxed, neutral expression.",
+                color = AppColors.TextOnPrimary.copy(alpha = 0.85f),
                 fontSize = 12.sp,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth()
+            )
+            Spacer(modifier = Modifier.height(2.dp))
+            Text(
+                text = "Remove spectacles · use proper lighting · look straight ahead",
+                color = AppColors.TextOnPrimary.copy(alpha = 0.7f),
+                fontSize = 11.sp,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.fillMaxWidth().padding(top = 2.dp)
             )
+        }
+
+        // Step captions — purely instructional labels, mirrored under the guide
+        Row(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth()
+                .padding(bottom = 128.dp, start = 32.dp, end = 32.dp),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            listOf("01" to "Neutral face", "02" to "Look ahead", "03" to "Hold still").forEach { (n, label) ->
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(n, color = AppColors.AccentAquaSoft, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+                    Text(label, color = AppColors.TextOnPrimary.copy(alpha = 0.85f), fontSize = 11.sp)
+                }
+            }
         }
 
         // Capture button with real capturing/disabled state
@@ -325,6 +360,25 @@ private fun FaceGuideOverlay(modifier: Modifier = Modifier) {
                 pathEffect = PathEffect.dashPathEffect(floatArrayOf(14f, 10f), 0f)
             )
         )
+
+        // Corner markers framing the guide box, matching the clinical capture design language.
+        val boxLeft = center.x - guideWidth / 2f - 16.dp.toPx()
+        val boxTop = center.y - guideHeight / 2f - 16.dp.toPx()
+        val boxRight = center.x + guideWidth / 2f + 16.dp.toPx()
+        val boxBottom = center.y + guideHeight / 2f + 16.dp.toPx()
+        val bracket = 20.dp.toPx()
+        val bracketStroke = 3.dp.toPx()
+        val bracketColor = Color.White.copy(alpha = 0.9f)
+        listOf(
+            Offset(boxLeft, boxTop) to Pair(1, 1),
+            Offset(boxRight, boxTop) to Pair(-1, 1),
+            Offset(boxLeft, boxBottom) to Pair(1, -1),
+            Offset(boxRight, boxBottom) to Pair(-1, -1)
+        ).forEach { (corner, dir) ->
+            val (dx, dy) = dir
+            drawLine(bracketColor, corner, Offset(corner.x + bracket * dx, corner.y), strokeWidth = bracketStroke)
+            drawLine(bracketColor, corner, Offset(corner.x, corner.y + bracket * dy), strokeWidth = bracketStroke)
+        }
     }
 }
 
@@ -333,7 +387,7 @@ private fun PermissionRationale(onRequestAgain: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(AppColors.Background)
+            .background(com.pes.facialparalysis.ui.theme.components.clinicalBackgroundBrush())
             .padding(32.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center

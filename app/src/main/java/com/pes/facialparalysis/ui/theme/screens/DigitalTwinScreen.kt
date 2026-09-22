@@ -12,7 +12,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Notifications
@@ -42,8 +41,13 @@ import com.pes.facialparalysis.ml.TrajectoryEstimator
 import com.pes.facialparalysis.reminders.ReminderScheduler
 import com.pes.facialparalysis.ui.theme.AppColors
 import com.pes.facialparalysis.ui.theme.components.AiDisclosure
+import com.pes.facialparalysis.ui.theme.components.ClinicalBackButton
+import com.pes.facialparalysis.ui.theme.components.ClinicalCard
 import com.pes.facialparalysis.ui.theme.components.DemoDataBadge
 import com.pes.facialparalysis.ui.theme.components.DisclaimerBanner
+import com.pes.facialparalysis.ui.theme.components.EyebrowLabel
+import com.pes.facialparalysis.ui.theme.components.ScreenHeading
+import com.pes.facialparalysis.ui.theme.components.clinicalBackgroundBrush
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
@@ -53,24 +57,30 @@ fun DigitalTwinScreen(onBack: () -> Unit) {
     val context = LocalContext.current
     val patientId = SelectedPatientHolder.patientId
 
-    Column(modifier = Modifier.fillMaxSize().background(AppColors.Background)) {
+    Column(modifier = Modifier.fillMaxSize().background(clinicalBackgroundBrush())) {
+        Spacer(modifier = Modifier.windowInsetsTopHeight(WindowInsets.statusBars))
         Row(
             modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            IconButton(onClick = onBack) {
-                Icon(Icons.Filled.ArrowBack, contentDescription = "Back", tint = AppColors.TextPrimary)
-            }
-            Spacer(modifier = Modifier.width(4.dp))
+            ClinicalBackButton(onClick = onBack)
+            Spacer(modifier = Modifier.width(12.dp))
             Column {
-                Text("Digital Twin", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = AppColors.TextPrimary)
+                EyebrowLabel("Recovery monitoring")
                 Text(
-                    SelectedPatientHolder.patientName ?: "",
+                    SelectedPatientHolder.patientName ?: "Digital Twin",
                     fontSize = 12.sp,
                     color = AppColors.TextSecondary
                 )
             }
         }
+        Text(
+            "Your recovery trend.",
+            style = MaterialTheme.typography.displayMedium,
+            color = AppColors.TextPrimary,
+            modifier = Modifier.padding(horizontal = 20.dp)
+        )
+        Spacer(modifier = Modifier.height(12.dp))
 
         if (patientId == null) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -102,6 +112,8 @@ fun DigitalTwinScreen(onBack: () -> Unit) {
             if (snapshot.latest == null) {
                 EmptyTwinState()
             } else {
+                SymmetryAndGradeSummaryRow(snapshot)
+                Spacer(modifier = Modifier.height(14.dp))
                 CurrentGradeCard(snapshot.latest)
                 Spacer(modifier = Modifier.height(14.dp))
                 SymmetryMetricsCard(snapshot.latest)
@@ -173,13 +185,7 @@ private fun EmptyTwinState() {
 
 @Composable
 private fun SectionHeader(text: String) {
-    Text(
-        text = text,
-        fontSize = 13.sp,
-        fontWeight = FontWeight.SemiBold,
-        color = AppColors.TextPrimary,
-        modifier = Modifier.padding(bottom = 8.dp)
-    )
+    EyebrowLabel(text, color = AppColors.TextPrimary, modifier = Modifier.padding(bottom = 8.dp))
 }
 
 @Composable
@@ -189,14 +195,45 @@ private fun InfoNote(text: String) {
 
 @Composable
 private fun TwinCard(content: @Composable ColumnScope.() -> Unit) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = AppColors.Surface),
-        border = BorderStroke(1.dp, AppColors.Border),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
-    ) {
-        Column(modifier = Modifier.padding(16.dp), content = content)
+    ClinicalCard(content = content)
+}
+
+/**
+ * "Current symmetry" / "assessment grade" summary pair, mirroring the recovery-dashboard design
+ * reference. Symmetry% here is simply (100 - measured overall asymmetry%) from the same real
+ * [AssessmentRecord.faiValue] used everywhere else on this screen — not a separate metric.
+ */
+@Composable
+private fun SymmetryAndGradeSummaryRow(snapshot: DigitalTwinSnapshot) {
+    val latest = snapshot.latest ?: return
+    val currentSymmetry = (100.0 - latest.faiValue).coerceIn(0.0, 100.0)
+    val baselineSymmetry = snapshot.baseline?.let { (100.0 - it.faiValue).coerceIn(0.0, 100.0) }
+    val deltaText = baselineSymmetry?.let {
+        val delta = currentSymmetry - it
+        "${if (delta >= 0) "+" else ""}${"%.0f".format(delta)}% from baseline"
+    } ?: "Baseline assessment"
+    val gradeTrend = when {
+        snapshot.previous == null -> "First recorded assessment"
+        latest.grade < snapshot.previous!!.grade -> "Improving pattern"
+        latest.grade > snapshot.previous!!.grade -> "Worsening pattern"
+        else -> "Stable pattern"
+    }
+
+    Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
+        ClinicalCard(modifier = Modifier.weight(1f)) {
+            Text("CURRENT SYMMETRY", style = MaterialTheme.typography.labelMedium, color = AppColors.TextSecondary)
+            Spacer(modifier = Modifier.height(6.dp))
+            Text("${"%.0f".format(currentSymmetry)}%", style = MaterialTheme.typography.headlineLarge, color = AppColors.AccentAqua)
+            Spacer(modifier = Modifier.height(2.dp))
+            Text(deltaText, style = MaterialTheme.typography.bodySmall, color = AppColors.TextSecondary)
+        }
+        ClinicalCard(modifier = Modifier.weight(1f)) {
+            Text("ASSESSMENT GRADE", style = MaterialTheme.typography.labelMedium, color = AppColors.TextSecondary)
+            Spacer(modifier = Modifier.height(6.dp))
+            Text("Grade ${latest.grade}", style = MaterialTheme.typography.headlineLarge, color = AppColors.gradeColor(latest.grade))
+            Spacer(modifier = Modifier.height(2.dp))
+            Text(gradeTrend, style = MaterialTheme.typography.bodySmall, color = AppColors.TextSecondary)
+        }
     }
 }
 

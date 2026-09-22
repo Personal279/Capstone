@@ -31,6 +31,8 @@ import com.pes.facialparalysis.data.SelectedPatientHolder
 import com.pes.facialparalysis.navigation.AppNavHost
 import com.pes.facialparalysis.ui.theme.AppColors
 import com.pes.facialparalysis.ui.theme.FacialParalysisTheme
+import com.pes.facialparalysis.ui.theme.components.EyebrowLabel
+import com.pes.facialparalysis.ui.theme.components.clinicalBackgroundBrush
 
 class MainActivity : ComponentActivity() {
     private val notificationPermissionLauncher =
@@ -68,25 +70,18 @@ fun HomeScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(AppColors.Background)
+            .background(clinicalBackgroundBrush())
     ) {
+        Spacer(modifier = Modifier.windowInsetsTopHeight(WindowInsets.statusBars))
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(AppColors.Surface)
-                .border(width = 1.dp, color = AppColors.Border)
                 .padding(horizontal = 20.dp, vertical = 14.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column {
-                Text(
-                    text = "PATIENT",
-                    fontSize = 10.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = AppColors.TextSecondary,
-                    letterSpacing = 1.sp
-                )
+                EyebrowLabel("Patient")
                 Text(
                     text = SelectedPatientHolder.patientName ?: "None selected",
                     fontSize = 15.sp,
@@ -142,7 +137,7 @@ fun HomeScreen(
 
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
+                shape = RoundedCornerShape(20.dp),
                 colors = CardDefaults.cardColors(containerColor = AppColors.Surface),
                 border = androidx.compose.foundation.BorderStroke(1.dp, AppColors.Border),
                 elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
@@ -224,8 +219,8 @@ private fun ActionButton(
     if (filled) {
         Button(
             onClick = onClick,
-            modifier = Modifier.fillMaxWidth().height(52.dp),
-            shape = RoundedCornerShape(10.dp),
+            modifier = Modifier.fillMaxWidth().height(56.dp),
+            shape = RoundedCornerShape(28.dp),
             colors = ButtonDefaults.buttonColors(containerColor = AppColors.Primary)
         ) {
             Icon(icon, contentDescription = null, modifier = Modifier.size(18.dp), tint = AppColors.TextOnPrimary)
@@ -235,8 +230,8 @@ private fun ActionButton(
     } else {
         OutlinedButton(
             onClick = onClick,
-            modifier = Modifier.fillMaxWidth().height(52.dp),
-            shape = RoundedCornerShape(10.dp),
+            modifier = Modifier.fillMaxWidth().height(56.dp),
+            shape = RoundedCornerShape(28.dp),
             border = androidx.compose.foundation.BorderStroke(1.dp, AppColors.Border),
             colors = ButtonDefaults.outlinedButtonColors(contentColor = AppColors.TextPrimary)
         ) {

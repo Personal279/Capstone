@@ -28,6 +28,8 @@ import com.pes.facialparalysis.data.AppDatabase
 import com.pes.facialparalysis.data.Patient
 import com.pes.facialparalysis.data.SelectedPatientHolder
 import com.pes.facialparalysis.ui.theme.AppColors
+import com.pes.facialparalysis.ui.theme.components.EyebrowLabel
+import com.pes.facialparalysis.ui.theme.components.clinicalBackgroundBrush
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
@@ -54,14 +56,16 @@ fun PatientSelectionScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(AppColors.Background)
+            .background(clinicalBackgroundBrush())
             .padding(24.dp)
     ) {
+        Spacer(modifier = Modifier.windowInsetsTopHeight(WindowInsets.statusBars))
         Spacer(modifier = Modifier.height(20.dp))
+        EyebrowLabel("Clinical companion")
+        Spacer(modifier = Modifier.height(6.dp))
         Text(
             text = "Select patient",
-            fontSize = 22.sp,
-            fontWeight = FontWeight.Bold,
+            style = MaterialTheme.typography.displayMedium,
             color = AppColors.TextPrimary
         )
         Spacer(modifier = Modifier.height(4.dp))

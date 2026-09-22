@@ -33,6 +33,7 @@ import com.pes.facialparalysis.data.AppDatabase
 import com.pes.facialparalysis.data.AssessmentRecord
 import com.pes.facialparalysis.data.SelectedPatientHolder
 import com.pes.facialparalysis.ui.theme.AppColors
+import com.pes.facialparalysis.ui.theme.components.clinicalBackgroundBrush
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -46,7 +47,7 @@ fun HistoryScreen(
 
     if (patientId == null) {
         Box(
-            modifier = Modifier.fillMaxSize().background(AppColors.Background),
+            modifier = Modifier.fillMaxSize().background(clinicalBackgroundBrush()),
             contentAlignment = Alignment.Center
         ) {
             Text("No patient selected.", color = AppColors.TextSecondary)
@@ -68,7 +69,7 @@ fun HistoryScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(AppColors.Background)
+            .background(clinicalBackgroundBrush())
             .padding(20.dp)
     ) {
         Text(

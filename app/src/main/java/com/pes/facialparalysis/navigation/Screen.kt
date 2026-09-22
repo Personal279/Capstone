@@ -1,6 +1,8 @@
 package com.pes.facialparalysis.navigation
 
 sealed class Screen(val route: String) {
+    object Splash : Screen("splash")
+    object Onboarding : Screen("onboarding")
     object PatientSelection : Screen("patient_selection")
     object Home : Screen("home")
     object Capture : Screen("capture")

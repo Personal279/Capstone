@@ -9,8 +9,10 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.FactCheck
+import androidx.compose.material.icons.filled.Psychology
+import androidx.compose.material.icons.filled.Timeline
+import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -37,8 +39,21 @@ import com.pes.facialparalysis.ml.MlpClassifier
 import com.pes.facialparalysis.ml.ScanQualityChecker
 import com.pes.facialparalysis.ml.XaiExplainer
 import com.pes.facialparalysis.ui.theme.AppColors
+import com.pes.facialparalysis.ui.theme.components.ClinicalCard
+import com.pes.facialparalysis.ui.theme.components.ClinicalDivider
+import com.pes.facialparalysis.ui.theme.components.ClinicalMetricRow
 import com.pes.facialparalysis.ui.theme.components.ConfidenceBars
 import com.pes.facialparalysis.ui.theme.components.DisclaimerBanner
+import com.pes.facialparalysis.ui.theme.components.EyebrowLabel
+import com.pes.facialparalysis.ui.theme.components.FaceMeshVisualization
+import com.pes.facialparalysis.ui.theme.components.LandmarkAsymmetryOverlay
+import com.pes.facialparalysis.ui.theme.components.PrimaryButton
+import com.pes.facialparalysis.ui.theme.components.ScreenHeading
+import com.pes.facialparalysis.ui.theme.components.SecondaryButton
+import com.pes.facialparalysis.ui.theme.components.StageChecklistRow
+import com.pes.facialparalysis.ui.theme.components.StageState
+import com.pes.facialparalysis.ui.theme.components.StatusIndicator
+import com.pes.facialparalysis.ui.theme.components.clinicalBackgroundBrush
 import com.google.mediapipe.tasks.components.containers.NormalizedLandmark
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -58,11 +73,19 @@ private data class ScreenResult(
     val scanQuality: ScanQualityChecker.ScanQualityResult? = null
 )
 
+/** Visual stage of the (single, uninterrupted) analysis pipeline — purely a UI-progress label
+ * driven by real checkpoints in that pipeline; it never gates or reorders the underlying work. */
+private enum class ProcessingStage { LANDMARKS, SYMMETRY, AI_REVIEW, DONE }
+
 @Composable
 fun ResultScreen(onDone: () -> Unit, onViewExplanation: () -> Unit = {}, onViewDigitalTwin: () -> Unit = {}) {
     val context = LocalContext.current
     var isLoading by remember { mutableStateOf(true) }
     var result by remember { mutableStateOf(ScreenResult()) }
+    var stage by remember { mutableStateOf(ProcessingStage.LANDMARKS) }
+    var liveFrame by remember { mutableStateOf<Bitmap?>(null) }
+    var liveLandmarks by remember { mutableStateOf<List<NormalizedLandmark>?>(null) }
+    var liveRegions by remember { mutableStateOf<List<FaiCalculator.RegionAsymmetry>>(emptyList()) }
 
     LaunchedEffect(Unit) {
         val imageBitmap = CapturedImageHolder.bitmap
@@ -98,14 +121,32 @@ fun ResultScreen(onDone: () -> Unit, onViewExplanation: () -> Unit = {}, onViewD
 
                 for (frame in framesToProcess) {
                     val landmarkResult = landmarkDetector.detect(frame) ?: continue
-                    val prediction = mlp.predict(frame)
                     val landmarks = landmarkResult.faceLandmarks()[0]
+                    val isFirstValidFrame = validFrames == 0
+                    if (isFirstValidFrame) {
+                        // UI-only checkpoint: surface the real landmarks for this frame as soon as
+                        // they're available. No inference call, no reordering of any ML step.
+                        withContext(Dispatchers.Main) {
+                            liveFrame = frame
+                            liveLandmarks = landmarks
+                            stage = ProcessingStage.LANDMARKS
+                        }
+                    }
+
+                    val prediction = mlp.predict(frame)
                     perFrameGrades.add(prediction.predictedGrade)
                     perFrameProbabilities.add(prediction.probabilities)
-                    perFrameRegions.add(FaiCalculator.computeDetailed(landmarks, frame.width, frame.height))
-                    if (firstAnalyzedFrame == null) {
+                    val frameRegions = FaiCalculator.computeDetailed(landmarks, frame.width, frame.height)
+                    perFrameRegions.add(frameRegions)
+
+                    if (isFirstValidFrame) {
                         firstAnalyzedFrame = frame
                         firstAnalyzedLandmarks = landmarks
+                        // UI-only checkpoint: this frame's real FAI/asymmetry values are ready.
+                        withContext(Dispatchers.Main) {
+                            liveRegions = frameRegions
+                            stage = ProcessingStage.SYMMETRY
+                        }
                     }
                     validFrames++
                 }
@@ -116,6 +157,8 @@ fun ResultScreen(onDone: () -> Unit, onViewExplanation: () -> Unit = {}, onViewD
                     mlp.close()
                     return@withContext ScreenResult(error = "No face detected. Please retake with a clear frontal face.")
                 }
+
+                withContext(Dispatchers.Main) { stage = ProcessingStage.AI_REVIEW }
 
                 val avgProbabilities = (1..5).associateWith { grade ->
                     perFrameProbabilities.map { it[grade] ?: 0.0 }.average()
@@ -207,6 +250,7 @@ fun ResultScreen(onDone: () -> Unit, onViewExplanation: () -> Unit = {}, onViewD
 
         result = outcome
         isLoading = false
+        stage = ProcessingStage.DONE
         if (outcome.analyzedFrame != null) {
             CapturedImageHolder.bitmap = null // ownership moved to XaiDataHolder; do not recycle here
         } else {
@@ -218,27 +262,11 @@ fun ResultScreen(onDone: () -> Unit, onViewExplanation: () -> Unit = {}, onViewD
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(AppColors.Background)
+            .background(clinicalBackgroundBrush())
             .padding(24.dp)
     ) {
-        Spacer(modifier = Modifier.height(20.dp))
-        Text(
-            text = "Analysis result",
-            fontSize = 22.sp,
-            fontWeight = FontWeight.Bold,
-            color = AppColors.TextPrimary
-        )
-        Spacer(modifier = Modifier.height(4.dp))
-        Text(
-            text = when {
-                isLoading -> "Analyzing the captured images"
-                result.error != null -> "We ran into a problem"
-                else -> "Here's what we found"
-            },
-            fontSize = 13.sp,
-            color = AppColors.TextSecondary
-        )
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.windowInsetsTopHeight(WindowInsets.statusBars))
+        Spacer(modifier = Modifier.height(12.dp))
 
         Column(
             modifier = Modifier
@@ -246,8 +274,10 @@ fun ResultScreen(onDone: () -> Unit, onViewExplanation: () -> Unit = {}, onViewD
                 .verticalScroll(rememberScrollState())
         ) {
             when {
-                isLoading -> LoadingState()
                 result.error != null -> ErrorState(result.error!!)
+                stage == ProcessingStage.LANDMARKS -> LandmarkMappingState(liveLandmarks)
+                stage == ProcessingStage.SYMMETRY -> SymmetryAnalysisState(liveLandmarks, liveRegions)
+                stage == ProcessingStage.AI_REVIEW -> AiReviewState()
                 result.grade != null -> ResultState(
                     grade = result.grade!!,
                     probabilities = result.probabilities,
@@ -256,30 +286,146 @@ fun ResultScreen(onDone: () -> Unit, onViewExplanation: () -> Unit = {}, onViewD
                     onViewExplanation = onViewExplanation,
                     onViewDigitalTwin = onViewDigitalTwin
                 )
+                else -> LandmarkMappingState(liveLandmarks)
             }
         }
 
-        Button(
+        Spacer(modifier = Modifier.height(12.dp))
+        SecondaryButton(
+            text = "Back to home",
             onClick = {
                 XaiDataHolder.clear()
                 onDone()
             },
-            modifier = Modifier.fillMaxWidth().height(52.dp),
-            shape = RoundedCornerShape(10.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = AppColors.Primary)
-        ) {
-            Text("Back to home", fontSize = 15.sp, fontWeight = FontWeight.Medium, color = AppColors.TextOnPrimary)
+            modifier = Modifier.fillMaxWidth()
+        )
+        Spacer(modifier = Modifier.windowInsetsBottomHeight(WindowInsets.navigationBars))
+    }
+}
+
+@Composable
+private fun LandmarkMappingState(landmarks: List<NormalizedLandmark>?) {
+    Column {
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            EyebrowLabel("Live landmark mapping")
+            StatusIndicator("Tracking")
+        }
+        Spacer(modifier = Modifier.height(10.dp))
+        ScreenHeading("Mapping facial movement.")
+        Spacer(modifier = Modifier.height(20.dp))
+        ClinicalCard(contentPadding = PaddingValues(0.dp)) {
+            FaceMeshVisualization(
+                landmarks = landmarks,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(260.dp)
+            )
+        }
+        Spacer(modifier = Modifier.height(16.dp))
+        ClinicalCard {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(Icons.Filled.Visibility, contentDescription = null, tint = AppColors.Primary, modifier = Modifier.size(20.dp))
+                Spacer(modifier = Modifier.width(12.dp))
+                Column {
+                    Text(
+                        text = "${landmarks?.size ?: 0} landmarks localized",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = AppColors.TextPrimary
+                    )
+                    Text(
+                        text = "Stable facial geometry detected",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = AppColors.TextSecondary
+                    )
+                }
+            }
         }
     }
 }
 
 @Composable
-private fun LoadingState() {
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            CircularProgressIndicator(color = AppColors.Primary)
-            Spacer(modifier = Modifier.height(16.dp))
-            Text("Analyzing...", fontSize = 15.sp, color = AppColors.TextPrimary)
+private fun SymmetryAnalysisState(
+    landmarks: List<NormalizedLandmark>?,
+    regions: List<FaiCalculator.RegionAsymmetry>
+) {
+    Column {
+        EyebrowLabel("Symmetry analysis")
+        Spacer(modifier = Modifier.height(10.dp))
+        ScreenHeading("A balanced clinical view.")
+        Spacer(modifier = Modifier.height(6.dp))
+        Text(
+            "The centerline compares resting facial position across key regions.",
+            style = MaterialTheme.typography.bodyMedium,
+            color = AppColors.TextSecondary
+        )
+        Spacer(modifier = Modifier.height(20.dp))
+        ClinicalCard(contentPadding = PaddingValues(0.dp)) {
+            Box {
+                if (landmarks != null) {
+                    LandmarkAsymmetryOverlay(
+                        landmarks = landmarks,
+                        regions = regions,
+                        modifier = Modifier.fillMaxWidth().height(260.dp)
+                    )
+                } else {
+                    Spacer(modifier = Modifier.fillMaxWidth().height(260.dp))
+                }
+            }
+        }
+        Spacer(modifier = Modifier.height(16.dp))
+        ClinicalCard {
+            regions.forEachIndexed { index, region ->
+                ClinicalMetricRow(
+                    label = "${region.region.replaceFirstChar { it.uppercase() }} asymmetry",
+                    value = "%.1f%%".format(region.asymmetryPercent),
+                    valueColor = if (region.asymmetryPercent > 15.0) AppColors.AccentRose else AppColors.AccentAmber
+                )
+                if (index != regions.lastIndex) {
+                    Spacer(modifier = Modifier.height(10.dp))
+                    ClinicalDivider()
+                    Spacer(modifier = Modifier.height(10.dp))
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun AiReviewState() {
+    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
+        EyebrowLabel("Clinical AI review", modifier = Modifier.align(Alignment.Start))
+        Spacer(modifier = Modifier.height(28.dp))
+        Box(
+            modifier = Modifier
+                .size(72.dp)
+                .clip(CircleShape)
+                .background(AppColors.PrimaryLight),
+            contentAlignment = Alignment.Center
+        ) {
+            CircularProgressIndicator(color = AppColors.Primary, strokeWidth = 2.5.dp, modifier = Modifier.size(56.dp))
+            Icon(Icons.Filled.Psychology, contentDescription = null, tint = AppColors.Primary, modifier = Modifier.size(28.dp))
+        }
+        Spacer(modifier = Modifier.height(24.dp))
+        Text(
+            "Interpreting movement patterns.",
+            style = MaterialTheme.typography.displayMedium,
+            color = AppColors.TextPrimary,
+            textAlign = TextAlign.Center
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            "Combining symmetry, landmark motion, and clinical grading features.",
+            style = MaterialTheme.typography.bodyMedium,
+            color = AppColors.TextSecondary,
+            textAlign = TextAlign.Center
+        )
+        Spacer(modifier = Modifier.height(24.dp))
+        ClinicalCard {
+            StageChecklistRow("Geometry quality verified", StageState.DONE)
+            Spacer(modifier = Modifier.height(14.dp))
+            StageChecklistRow("Regional asymmetry compared", StageState.DONE)
+            Spacer(modifier = Modifier.height(14.dp))
+            StageChecklistRow("Preparing clinical summary", StageState.ACTIVE)
         }
     }
 }
@@ -288,7 +434,7 @@ private fun LoadingState() {
 private fun ErrorState(message: String) {
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         Card(
-            shape = RoundedCornerShape(12.dp),
+            shape = RoundedCornerShape(20.dp),
             colors = CardDefaults.cardColors(containerColor = AppColors.Surface),
             border = BorderStroke(1.dp, AppColors.Border),
             elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
@@ -332,122 +478,98 @@ private fun ResultState(
         4 -> "Moderately severe"
         else -> "Severe"
     }
+    val confidence = probabilities[grade] ?: 0.0
 
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = AppColors.Surface),
-        border = BorderStroke(1.dp, AppColors.Border),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
-    ) {
-        Row(
-            modifier = Modifier.padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
+    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+        EyebrowLabel("Assessment summary")
+        Text("Completed today", style = MaterialTheme.typography.bodySmall, color = AppColors.TextSecondary)
+    }
+    Spacer(modifier = Modifier.height(16.dp))
+
+    ClinicalCard {
+        Text(
+            "HOUSE-BRACKMANN GRADE",
+            style = MaterialTheme.typography.labelMedium,
+            color = AppColors.TextSecondary,
+            modifier = Modifier.align(Alignment.CenterHorizontally)
+        )
+        Spacer(modifier = Modifier.height(6.dp))
+        Text(
+            "Grade $grade",
+            style = MaterialTheme.typography.displayLarge,
+            color = gradeColor,
+            modifier = Modifier.align(Alignment.CenterHorizontally)
+        )
+        Text(
+            gradeLabel + " dysfunction",
+            style = MaterialTheme.typography.bodyMedium,
+            color = AppColors.TextSecondary,
+            modifier = Modifier.align(Alignment.CenterHorizontally)
+        )
+        Spacer(modifier = Modifier.height(18.dp))
+        LinearProgressIndicator(
+            progress = { confidence.toFloat() },
+            modifier = Modifier.fillMaxWidth().height(6.dp).clip(RoundedCornerShape(3.dp)),
+            color = AppColors.AccentAqua,
+            trackColor = AppColors.SurfaceMuted
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            "Assessment confidence: ${"%.0f".format(confidence * 100)}%" +
+                if (framesUsed > 1) " · averaged across $framesUsed frames" else "",
+            style = MaterialTheme.typography.bodySmall,
+            color = AppColors.TextSecondary,
+            modifier = Modifier.align(Alignment.CenterHorizontally)
+        )
+    }
+
+    Spacer(modifier = Modifier.height(14.dp))
+
+    ClinicalCard {
+        Row {
             Box(
                 modifier = Modifier
-                    .size(48.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(gradeColor.copy(alpha = 0.12f)),
+                    .size(30.dp)
+                    .clip(RoundedCornerShape(9.dp))
+                    .background(AppColors.PrimaryDark),
                 contentAlignment = Alignment.Center
             ) {
-                Text(
-                    text = "G$grade",
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = gradeColor
-                )
+                Icon(Icons.Filled.FactCheck, contentDescription = null, tint = AppColors.AccentAquaSoft, modifier = Modifier.size(16.dp))
             }
             Spacer(modifier = Modifier.width(12.dp))
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = gradeLabel,
-                    fontSize = 15.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = AppColors.TextPrimary
-                )
-                Spacer(modifier = Modifier.height(2.dp))
-                Text(
-                    text = if (framesUsed > 1) "Averaged across $framesUsed frames" else "Analysis complete",
-                    fontSize = 12.sp,
-                    color = AppColors.TextSecondary
-                )
+            Column {
+                Text("Clinical interpretation", style = MaterialTheme.typography.titleMedium, color = AppColors.Primary)
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(explanation, style = MaterialTheme.typography.bodyMedium, color = AppColors.TextPrimary)
             }
-            Icon(
-                imageVector = Icons.Filled.CheckCircle,
-                contentDescription = null,
-                tint = AppColors.Primary,
-                modifier = Modifier.size(20.dp)
-            )
         }
     }
 
-    Spacer(modifier = Modifier.height(12.dp))
+    Spacer(modifier = Modifier.height(14.dp))
 
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = AppColors.PrimaryLight),
-        border = BorderStroke(1.dp, AppColors.Border),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
-    ) {
-        Row(modifier = Modifier.padding(16.dp)) {
-            Box(
-                modifier = Modifier
-                    .size(28.dp)
-                    .clip(CircleShape)
-                    .background(AppColors.Primary.copy(alpha = 0.15f)),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.Info,
-                    contentDescription = null,
-                    tint = AppColors.Primary,
-                    modifier = Modifier.size(16.dp)
-                )
-            }
-            Spacer(modifier = Modifier.width(10.dp))
-            Text(
-                text = explanation,
-                fontSize = 13.sp,
-                color = AppColors.TextPrimary,
-                lineHeight = 18.sp,
-                modifier = Modifier.align(Alignment.CenterVertically)
-            )
+    Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+        SecondaryButton(
+            text = "View details",
+            onClick = onViewExplanation,
+            modifier = Modifier.weight(1f)
+        )
+        Button(
+            onClick = onViewDigitalTwin,
+            modifier = Modifier.weight(1f).height(56.dp),
+            shape = RoundedCornerShape(28.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = AppColors.Primary)
+        ) {
+            Icon(Icons.Filled.Timeline, contentDescription = null, tint = AppColors.TextOnPrimary, modifier = Modifier.size(16.dp))
+            Spacer(modifier = Modifier.width(8.dp))
+            Text("Recovery trend", style = MaterialTheme.typography.labelLarge, color = AppColors.TextOnPrimary)
         }
     }
 
-    Spacer(modifier = Modifier.height(12.dp))
+    Spacer(modifier = Modifier.height(18.dp))
 
     ConfidenceBars(probabilities = probabilities, selectedGrade = grade)
 
-    Spacer(modifier = Modifier.height(12.dp))
-
-    OutlinedButton(
-        onClick = onViewExplanation,
-        modifier = Modifier.fillMaxWidth().height(48.dp),
-        shape = RoundedCornerShape(10.dp),
-        border = BorderStroke(1.dp, AppColors.Border),
-        colors = ButtonDefaults.outlinedButtonColors(contentColor = AppColors.Primary)
-    ) {
-        Icon(Icons.Filled.Info, contentDescription = null, modifier = Modifier.size(16.dp))
-        Spacer(modifier = Modifier.width(8.dp))
-        Text("View AI Explanation", fontSize = 14.sp, fontWeight = FontWeight.Medium)
-    }
-
-    Spacer(modifier = Modifier.height(10.dp))
-
-    OutlinedButton(
-        onClick = onViewDigitalTwin,
-        modifier = Modifier.fillMaxWidth().height(48.dp),
-        shape = RoundedCornerShape(10.dp),
-        border = BorderStroke(1.dp, AppColors.Border),
-        colors = ButtonDefaults.outlinedButtonColors(contentColor = AppColors.TextPrimary)
-    ) {
-        Text("View Digital Twin", fontSize = 14.sp, fontWeight = FontWeight.Medium)
-    }
-
-    Spacer(modifier = Modifier.height(12.dp))
+    Spacer(modifier = Modifier.height(14.dp))
 
     DisclaimerBanner()
 }

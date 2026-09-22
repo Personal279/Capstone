@@ -14,14 +14,34 @@ import com.pes.facialparalysis.ui.screens.VideoCaptureScreen
 import com.pes.facialparalysis.ui.screens.ResultScreen
 import com.pes.facialparalysis.ui.screens.XaiExplanationScreen
 import com.pes.facialparalysis.ui.screens.DigitalTwinScreen
+import com.pes.facialparalysis.ui.screens.SplashScreen
+import com.pes.facialparalysis.ui.screens.OnboardingScreen
 @Composable
 fun AppNavHost(
     navController: NavHostController = rememberNavController()
 ) {
     NavHost(
         navController = navController,
-        startDestination = Screen.PatientSelection.route
+        startDestination = Screen.Splash.route
     ) {
+
+        composable(Screen.Splash.route) {
+            SplashScreen(
+                onBeginAssessment = {
+                    navController.navigate(Screen.PatientSelection.route) {
+                        popUpTo(Screen.Splash.route) { inclusive = true }
+                    }
+                }
+            )
+        }
+
+        composable(Screen.Onboarding.route) {
+            OnboardingScreen(
+                onStartGuidedCapture = {
+                    navController.navigate(Screen.Capture.route)
+                }
+            )
+        }
 
         composable(Screen.PatientSelection.route) {
             PatientSelectionScreen(
@@ -43,7 +63,7 @@ fun AppNavHost(
                     navController.navigate(Screen.VideoCapture.route)
                 },
                 onCameraClick = {
-                    navController.navigate(Screen.Capture.route)
+                    navController.navigate(Screen.Onboarding.route)
                 },
                 onHistoryClick = {
                     navController.navigate(Screen.History.route)
