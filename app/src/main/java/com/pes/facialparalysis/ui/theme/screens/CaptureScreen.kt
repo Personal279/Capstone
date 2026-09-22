@@ -19,10 +19,11 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CameraAlt
+import androidx.compose.material.icons.filled.FlipCameraAndroid
 import androidx.compose.material.icons.filled.PhotoCamera
-import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -37,8 +38,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
-import androidx.compose.ui.window.Dialog
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.LifecycleOwner
 import com.pes.facialparalysis.data.CapturedImageHolder
 import com.pes.facialparalysis.ui.theme.AppColors
 import kotlinx.coroutines.delay
@@ -69,6 +70,58 @@ fun CaptureScreen(onCaptured: () -> Unit) {
     var isCapturing by remember { mutableStateOf(false) }
     var captureError by remember { mutableStateOf<String?>(null) }
 
+    // Which lens the user wants (survives rotation) vs. which lens is actually bound.
+    // The bound one decides whether we mirror the saved bitmap.
+    var lensFacing by rememberSaveable { mutableStateOf(CameraSelector.LENS_FACING_FRONT) }
+    var activeLens by remember { mutableStateOf(CameraSelector.LENS_FACING_FRONT) }
+
+    var cameraProvider by remember { mutableStateOf<ProcessCameraProvider?>(null) }
+    val previewView = remember { PreviewView(context) }
+    val lifecycleOwner = context as LifecycleOwner
+
+    // Load the camera provider once
+    LaunchedEffect(Unit) {
+        val future = ProcessCameraProvider.getInstance(context)
+        future.addListener({ cameraProvider = future.get() }, ContextCompat.getMainExecutor(context))
+    }
+
+    val hasFront = cameraProvider.hasLens(CameraSelector.LENS_FACING_FRONT)
+    val hasBack = cameraProvider.hasLens(CameraSelector.LENS_FACING_BACK)
+    val canSwitch = hasFront && hasBack
+
+    // If the device is missing the requested lens, fall back to the one it has
+    LaunchedEffect(cameraProvider) {
+        if (cameraProvider == null) return@LaunchedEffect
+        if (lensFacing == CameraSelector.LENS_FACING_FRONT && !hasFront && hasBack) {
+            lensFacing = CameraSelector.LENS_FACING_BACK
+        } else if (lensFacing == CameraSelector.LENS_FACING_BACK && !hasBack && hasFront) {
+            lensFacing = CameraSelector.LENS_FACING_FRONT
+        }
+    }
+
+    // (Re)bind whenever the provider is ready or the lens changes
+    LaunchedEffect(cameraProvider, lensFacing) {
+        val provider = cameraProvider ?: return@LaunchedEffect
+        imageCapture = null // disable shutter until the new lens is bound
+
+        val preview = Preview.Builder().build().also {
+            it.setSurfaceProvider(previewView.surfaceProvider)
+        }
+        val capture = ImageCapture.Builder()
+            .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
+            .build()
+        val selector = CameraSelector.Builder().requireLensFacing(lensFacing).build()
+
+        try {
+            provider.unbindAll()
+            provider.bindToLifecycle(lifecycleOwner, selector, preview, capture)
+            activeLens = lensFacing
+            imageCapture = capture
+        } catch (e: Exception) {
+            captureError = "Couldn't start the camera. Check that no other app is using it."
+        }
+    }
+
     // Brief flash to confirm a shot was actually taken — matters when there's
     // no shutter sound/haptic guarantee across devices.
     var flashVisible by remember { mutableStateOf(false) }
@@ -81,44 +134,11 @@ fun CaptureScreen(onCaptured: () -> Unit) {
     Box(modifier = Modifier.fillMaxSize().background(Color.Black)) {
         AndroidView(
             modifier = Modifier.fillMaxSize(),
-            factory = { ctx ->
-                val previewView = PreviewView(ctx)
-                val cameraProviderFuture = ProcessCameraProvider.getInstance(ctx)
-
-                cameraProviderFuture.addListener({
-                    val cameraProvider = cameraProviderFuture.get()
-
-                    val preview = Preview.Builder().build().also {
-                        it.setSurfaceProvider(previewView.surfaceProvider)
-                    }
-
-                    val capture = ImageCapture.Builder()
-                        .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
-                        .build()
-                    imageCapture = capture
-
-                    val cameraSelector = CameraSelector.DEFAULT_FRONT_CAMERA
-
-                    try {
-                        cameraProvider.unbindAll()
-                        cameraProvider.bindToLifecycle(
-                            ctx as androidx.lifecycle.LifecycleOwner,
-                            cameraSelector,
-                            preview,
-                            capture
-                        )
-                    } catch (e: Exception) {
-                        captureError = "Couldn't start the camera. Check that no other app is using it."
-                    }
-                }, ContextCompat.getMainExecutor(ctx))
-
-                previewView
-            }
+            factory = { previewView }
         )
 
-        // Face alignment guide — the single most important addition. Grading
-        // depends on comparable framing shot-to-shot, so give the user a
-        // fixed oval to line their face up against instead of guessing.
+        // Face alignment guide — grading depends on comparable framing
+        // shot-to-shot, so give the user a fixed oval to line up against.
         FaceGuideOverlay(modifier = Modifier.fillMaxSize())
 
         // Shutter flash feedback
@@ -137,23 +157,58 @@ fun CaptureScreen(onCaptured: () -> Unit) {
                 .fillMaxWidth()
                 .windowInsetsPadding(WindowInsets.statusBars)
                 .background(AppColors.TextPrimary.copy(alpha = 0.55f))
-                .padding(horizontal = 20.dp, vertical = 14.dp)
+                .padding(horizontal = 20.dp, vertical = 16.dp)
         ) {
             Text(
-                text = "Align your face with the guide",
-                color = AppColors.TextOnPrimary,
-                fontSize = 14.sp,
+                text = "GUIDED CAPTURE",
+                color = AppColors.AccentAquaSoft,
+                fontSize = 12.sp,
                 fontWeight = FontWeight.SemiBold,
+                letterSpacing = 1.4.sp,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.fillMaxWidth()
             )
+            Spacer(modifier = Modifier.height(6.dp))
             Text(
-                text = "Neutral expression · good lighting · look straight ahead",
-                color = AppColors.TextOnPrimary.copy(alpha = 0.8f),
+                text = "Find a calm, even light.",
+                color = AppColors.TextOnPrimary,
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Medium,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth()
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = "Center your face in the guide and hold a relaxed, neutral expression.",
+                color = AppColors.TextOnPrimary.copy(alpha = 0.85f),
                 fontSize = 12.sp,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth()
+            )
+            Spacer(modifier = Modifier.height(2.dp))
+            Text(
+                text = "Remove spectacles · use proper lighting · look straight ahead",
+                color = AppColors.TextOnPrimary.copy(alpha = 0.7f),
+                fontSize = 11.sp,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.fillMaxWidth().padding(top = 2.dp)
             )
+        }
+
+        // Step captions — purely instructional labels, mirrored under the guide
+        Row(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth()
+                .padding(bottom = 128.dp, start = 32.dp, end = 32.dp),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            listOf("01" to "Neutral face", "02" to "Look ahead", "03" to "Hold still").forEach { (n, label) ->
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(n, color = AppColors.AccentAquaSoft, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+                    Text(label, color = AppColors.TextOnPrimary.copy(alpha = 0.85f), fontSize = 11.sp)
+                }
+            }
         }
 
         // Capture button with real capturing/disabled state
@@ -163,11 +218,12 @@ fun CaptureScreen(onCaptured: () -> Unit) {
                 if (isCapturing) return@Button
                 isCapturing = true
                 captureError = null
+                val mirror = activeLens == CameraSelector.LENS_FACING_FRONT
                 capture.takePicture(
                     ContextCompat.getMainExecutor(context),
                     object : ImageCapture.OnImageCapturedCallback() {
                         override fun onCaptureSuccess(image: ImageProxy) {
-                            val bitmap = imageProxyToBitmap(image)
+                            val bitmap = imageProxyToBitmap(image, mirror)
                             image.close()
                             CapturedImageHolder.bitmap = bitmap
                             isCapturing = false
@@ -182,7 +238,7 @@ fun CaptureScreen(onCaptured: () -> Unit) {
                     }
                 )
             },
-            enabled = !isCapturing,
+            enabled = !isCapturing && imageCapture != null,
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .windowInsetsPadding(WindowInsets.navigationBars)
@@ -208,6 +264,35 @@ fun CaptureScreen(onCaptured: () -> Unit) {
                     contentDescription = "Capture",
                     tint = AppColors.TextOnPrimary,
                     modifier = Modifier.size(28.dp)
+                )
+            }
+        }
+
+        // Front/back switch — only shown if the device actually has both
+        if (canSwitch) {
+            IconButton(
+                onClick = {
+                    if (isCapturing) return@IconButton
+                    lensFacing =
+                        if (lensFacing == CameraSelector.LENS_FACING_FRONT)
+                            CameraSelector.LENS_FACING_BACK
+                        else
+                            CameraSelector.LENS_FACING_FRONT
+                },
+                enabled = !isCapturing,
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .windowInsetsPadding(WindowInsets.navigationBars)
+                    .padding(end = 32.dp, bottom = 48.dp)
+                    .size(48.dp)
+                    .clip(CircleShape)
+                    .background(AppColors.TextPrimary.copy(alpha = 0.55f))
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.FlipCameraAndroid,
+                    contentDescription = "Switch camera",
+                    tint = AppColors.TextOnPrimary,
+                    modifier = Modifier.size(26.dp)
                 )
             }
         }
@@ -244,6 +329,16 @@ fun CaptureScreen(onCaptured: () -> Unit) {
     }
 }
 
+/** True if the device has a camera facing the given direction. */
+private fun ProcessCameraProvider?.hasLens(lensFacing: Int): Boolean {
+    if (this == null) return false
+    return try {
+        hasCamera(CameraSelector.Builder().requireLensFacing(lensFacing).build())
+    } catch (e: CameraInfoUnavailableException) {
+        false
+    }
+}
+
 /**
  * Dashed oval guide centered in the preview. Gives the user a consistent
  * target to line their face up against, which matters for downstream
@@ -265,6 +360,25 @@ private fun FaceGuideOverlay(modifier: Modifier = Modifier) {
                 pathEffect = PathEffect.dashPathEffect(floatArrayOf(14f, 10f), 0f)
             )
         )
+
+        // Corner markers framing the guide box, matching the clinical capture design language.
+        val boxLeft = center.x - guideWidth / 2f - 16.dp.toPx()
+        val boxTop = center.y - guideHeight / 2f - 16.dp.toPx()
+        val boxRight = center.x + guideWidth / 2f + 16.dp.toPx()
+        val boxBottom = center.y + guideHeight / 2f + 16.dp.toPx()
+        val bracket = 20.dp.toPx()
+        val bracketStroke = 3.dp.toPx()
+        val bracketColor = Color.White.copy(alpha = 0.9f)
+        listOf(
+            Offset(boxLeft, boxTop) to Pair(1, 1),
+            Offset(boxRight, boxTop) to Pair(-1, 1),
+            Offset(boxLeft, boxBottom) to Pair(1, -1),
+            Offset(boxRight, boxBottom) to Pair(-1, -1)
+        ).forEach { (corner, dir) ->
+            val (dx, dy) = dir
+            drawLine(bracketColor, corner, Offset(corner.x + bracket * dx, corner.y), strokeWidth = bracketStroke)
+            drawLine(bracketColor, corner, Offset(corner.x, corner.y + bracket * dy), strokeWidth = bracketStroke)
+        }
     }
 }
 
@@ -273,7 +387,7 @@ private fun PermissionRationale(onRequestAgain: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(AppColors.Background)
+            .background(com.pes.facialparalysis.ui.theme.components.clinicalBackgroundBrush())
             .padding(32.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
@@ -318,7 +432,12 @@ private fun PermissionRationale(onRequestAgain: () -> Unit) {
     }
 }
 
-private fun imageProxyToBitmap(image: ImageProxy): Bitmap {
+/**
+ * Decodes the captured frame and applies rotation. Mirrors horizontally only
+ * for the front camera so the saved image matches the selfie preview; the
+ * back camera is saved as-is.
+ */
+private fun imageProxyToBitmap(image: ImageProxy, mirror: Boolean): Bitmap {
     val buffer = image.planes[0].buffer
     val bytes = ByteArray(buffer.remaining())
     buffer.get(bytes)
@@ -327,7 +446,7 @@ private fun imageProxyToBitmap(image: ImageProxy): Bitmap {
     val rotationDegrees = image.imageInfo.rotationDegrees
     val matrix = Matrix().apply {
         postRotate(rotationDegrees.toFloat())
-        postScale(-1f, 1f)
+        if (mirror) postScale(-1f, 1f)
     }
     return Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
 }

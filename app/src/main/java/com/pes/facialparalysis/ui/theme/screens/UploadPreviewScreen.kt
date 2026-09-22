@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.pes.facialparalysis.data.CapturedImageHolder
 import com.pes.facialparalysis.ui.theme.AppColors
+import com.pes.facialparalysis.ui.theme.components.clinicalBackgroundBrush
 
 @Composable
 fun UploadPreviewScreen(onConfirmed: () -> Unit, onCancelled: () -> Unit) {
@@ -46,7 +47,7 @@ fun UploadPreviewScreen(onConfirmed: () -> Unit, onCancelled: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(AppColors.Background)
+            .background(clinicalBackgroundBrush())
             .padding(24.dp)
     ) {
         Spacer(modifier = Modifier.height(20.dp))

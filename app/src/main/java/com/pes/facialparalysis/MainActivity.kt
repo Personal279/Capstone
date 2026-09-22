@@ -1,12 +1,19 @@
 package com.pes.facialparalysis
 
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -24,11 +31,21 @@ import com.pes.facialparalysis.data.SelectedPatientHolder
 import com.pes.facialparalysis.navigation.AppNavHost
 import com.pes.facialparalysis.ui.theme.AppColors
 import com.pes.facialparalysis.ui.theme.FacialParalysisTheme
+import com.pes.facialparalysis.ui.theme.components.EyebrowLabel
+import com.pes.facialparalysis.ui.theme.components.clinicalBackgroundBrush
 
 class MainActivity : ComponentActivity() {
+    private val notificationPermissionLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { /* reminders still work in-app either way */ }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
+        ) {
+            notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+        }
         setContent {
             FacialParalysisTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
@@ -47,30 +64,24 @@ fun HomeScreen(
     onRecordClick: () -> Unit = {},
     onCameraClick: () -> Unit = {},
     onHistoryClick: () -> Unit = {},
+    onDigitalTwinClick: () -> Unit = {},
     onSwitchPatientClick: () -> Unit = {}
 ) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(AppColors.Background)
+            .background(clinicalBackgroundBrush())
     ) {
+        Spacer(modifier = Modifier.windowInsetsTopHeight(WindowInsets.statusBars))
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(AppColors.Surface)
-                .border(width = 1.dp, color = AppColors.Border)
                 .padding(horizontal = 20.dp, vertical = 14.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column {
-                Text(
-                    text = "PATIENT",
-                    fontSize = 10.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = AppColors.TextSecondary,
-                    letterSpacing = 1.sp
-                )
+                EyebrowLabel("Patient")
                 Text(
                     text = SelectedPatientHolder.patientName ?: "None selected",
                     fontSize = 15.sp,
@@ -86,6 +97,7 @@ fun HomeScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .verticalScroll(rememberScrollState())
                 .padding(horizontal = 20.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -125,7 +137,7 @@ fun HomeScreen(
 
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
+                shape = RoundedCornerShape(20.dp),
                 colors = CardDefaults.cardColors(containerColor = AppColors.Surface),
                 border = androidx.compose.foundation.BorderStroke(1.dp, AppColors.Border),
                 elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
@@ -172,15 +184,10 @@ fun HomeScreen(
             ActionButton(text = "Record Video", icon = Icons.Filled.Videocam, filled = false, onClick = onRecordClick)
             Spacer(modifier = Modifier.height(10.dp))
             ActionButton(text = "View History", icon = Icons.Filled.History, filled = false, onClick = onHistoryClick)
+            Spacer(modifier = Modifier.height(10.dp))
+            ActionButton(text = "Digital Twin", icon = Icons.Filled.Timeline, filled = false, onClick = onDigitalTwinClick)
 
-            Spacer(modifier = Modifier.weight(1f))
-
-            Text(
-                text = "Powered by on-device AI",
-                fontSize = 11.sp,
-                color = AppColors.TextSecondary,
-                modifier = Modifier.padding(bottom = 20.dp)
-            )
+            Spacer(modifier = Modifier.height(24.dp))
         }
     }
 }
@@ -212,8 +219,8 @@ private fun ActionButton(
     if (filled) {
         Button(
             onClick = onClick,
-            modifier = Modifier.fillMaxWidth().height(52.dp),
-            shape = RoundedCornerShape(10.dp),
+            modifier = Modifier.fillMaxWidth().height(56.dp),
+            shape = RoundedCornerShape(28.dp),
             colors = ButtonDefaults.buttonColors(containerColor = AppColors.Primary)
         ) {
             Icon(icon, contentDescription = null, modifier = Modifier.size(18.dp), tint = AppColors.TextOnPrimary)
@@ -223,8 +230,8 @@ private fun ActionButton(
     } else {
         OutlinedButton(
             onClick = onClick,
-            modifier = Modifier.fillMaxWidth().height(52.dp),
-            shape = RoundedCornerShape(10.dp),
+            modifier = Modifier.fillMaxWidth().height(56.dp),
+            shape = RoundedCornerShape(28.dp),
             border = androidx.compose.foundation.BorderStroke(1.dp, AppColors.Border),
             colors = ButtonDefaults.outlinedButtonColors(contentColor = AppColors.TextPrimary)
         ) {
