@@ -1,0 +1,338 @@
+<!doctype html>
+<html lang="en"><head><script>window["__codeletBootstrap__"]=JSON.parse('{"A":"A","B":"20260922-05-b4f7588","C":{"Abril Fatface":"YACgEZbkUVE,0","Alfa Slab One":"YACgEYS9sJU,0","Anton":"YACgEcYqQ-A,0","Archivo":"YACgEZulLoA,0","Arial Narrow":"YAGyDvJ_4Ts,0","Arial Rounded MT Bold":"YAFcfoaHu-s,0","Arial":"YAGyDvJ_4Ts,0","Avenir Next":"YAFcfmNq6UY,0","Baloo 2":"YADK30bC6HQ,0","Bebas Neue":"YACgESME5ew,0","Bricolage Grotesque":"YAFyMcdwzpc,0","Broken Glyph":"YADZ-exUkv0,0","Canva Sans":"YAFdJjTk5UU,1","Caveat":"YALBs2ploWQ,0","Comic Sans MS":"YAFcfvtOAUY,1","Cormorant Garamond":"YAFdJhX-538,0","Courier New":"YAGzXiGs0_8,0","Courier Prime":"YAD1aFjegN8,0","DM Sans":"YAD1aU3sLnI,0","DM Serif Display":"YAD1aYG82rc,0","Forum":"YACgEcnnqB4,0","Fraunces":"YAFdJpU7Kkk,0","Georgia":"YAGzXkO0pEM,0","Ghost Mono":"YAHQutsX00Q,0","Hanken Grotesk":"YAFcfhwp99E,0","Helvetica Neue":"YAFcf6CtJfI,0","Helvetica":"YAFcf6CtJfI,0","IBM Plex Mono":"YAFdJkmvhGI,0","Impact":"YAFcfnjI7Vk,0","Instrument Serif":"YAHFeOnZNEk,0","Inter":"YAFdJvSyp_k,3","Iowan Old Style":"YAGNIFa8j9o,0","Jacques Francois":"YADK3zbC6RM,0","JetBrains Mono":"YAFdJksXcAk,0","Josefin Sans":"YAFdJjvw9Ps,0","Lato":"YAFdJuFCnaw,0","Libre Baskerville":"YACgEUFdPdA,0","Lobster":"YAD8SnSjSFI,0","Lora":"YACgEXvxf8Q,0","Merriweather":"YACgEXvHxxs,0","Montserrat":"YAFdtQi73Xs,0","Nunito":"YAFdJoNRMmU,1","Oleo Script":"YACgEQQ14jI,0","Oswald":"YACgEQY10lw,0","Pacifico":"YADLjORQ1u4,0","Phantom Sans":"YAFdJvgJ5TU,0","Playfair Display":"YAFdJhem5V8,1","Plus Jakarta Sans":"YAGvf3_u0_Q,0","Poppins":"YAFdJjbTu24,1","Press Start 2P":"YAFyGr-8pmQ,0","Quicksand":"YAFdJpYtCxE,1","Raleway":"YAFdJhmxbVQ,1","Roboto Slab":"YAFdJswIKAg,0","Rockwell":"YAFcfyVZnN0,0","Rye":"YACgEdQP21k,0","Segoe UI":"YAHNdRD1Klw,0","Source Sans 3":"YAG4lO1Mj10,0","Source Serif 4":"YACgEfdj394,0","Space Grotesk":"YADZ-dYEmhg,0","Space Mono":"YADW1-vpsoc,0","Times New Roman":"YAGzXW3gftg,0","Times":"YAGzXW3gftg,0","Trebuchet MS":"YAFcfrglpVA,0","UV Display":"YAEdVfSSpYo,0","UV Sans":"YAFdJvgJ5TU,0","Ubuntu":"YACgERDU--Q,0","Verdana":"YAGzXTctYtQ,0","Work Sans":"YAGXhLOKv44,0","Yellowtail":"YACgEYG4kG4,0","ui-monospace":"YAD1aFjegN8,0","ui-sans-serif":"YACkoD1yZN0,0"}}');</script><script src="/_sdk/83d6dfdadcd4750a.telemetry_sdk.js" integrity="sha512-XS4Dvzp6vbagZS9vFErihvr8aO3S0tH78KWUefn06fmL4WYqryBtZj/IOLITYj7dFA4gPVvPg1W/JB1DK3uLNQ=="></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Facial Recovery AI</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+  <style>
+    :root{--ink:#172033;--muted:#526079;--navy:#253b67;--indigo:#4b4f8e;--indigo-soft:#e9ebf7;--paper:#f8f7f4;--panel:#fff;--line:#d9ddea;--orange:#b85d25;--burgundy:#7d3044;--success:#3e6b53}
+    *{box-sizing:border-box} html{background:var(--paper)} body{margin:0;min-width:100%;background:var(--paper);color:var(--ink);font-family:"DM Sans",sans-serif;overflow-x:hidden}
+    button{font:inherit} button:focus-visible{outline:3px solid var(--orange);outline-offset:3px}
+    .app-shell{width:100%;min-height:calc(100 * min(var(--vh,1vh),1vh));display:flex;justify-content:center;align-items:center;padding:24px;background:radial-gradient(circle at 85% 10%,#e8e9f4 0,transparent 34%),var(--paper)}
+    .phone{width:min(100%,430px);height:min(850px,calc(100 * min(var(--vh,1vh),1vh) - 42px));min-height:650px;position:relative;overflow:hidden;border:1px solid #d6d9e2;border-radius:18px;background:var(--paper);box-shadow:0 26px 70px rgba(23,32,51,.19)}
+    .screen{position:absolute;inset:0;overflow-y:auto;padding:22px 22px 26px;opacity:0;visibility:hidden;transform:translateX(18px);transition:opacity .28s ease,transform .28s ease,visibility .28s;scrollbar-width:none}
+    .screen::-webkit-scrollbar{display:none}.screen.active{opacity:1;visibility:visible;transform:none}.screen.exit-left{opacity:0;transform:translateX(-18px)}
+    .top-notch{width:76px;height:5px;margin:0 auto 22px;border-radius:99px;background:#c8cede}.eyebrow{color:var(--indigo);font-size:11px;letter-spacing:.14em;font-weight:700;text-transform:uppercase}.display{letter-spacing:-.04em;line-height:1.07;font-weight:700}.muted{color:var(--muted);line-height:1.55}
+    .clinical-card{background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:0 6px 18px rgba(23,32,51,.04)}
+    .primary-btn,.secondary-btn,.back-btn{transition:transform .2s ease,background .2s ease,box-shadow .2s ease}
+    .primary-btn{width:100%;min-height:50px;display:flex;align-items:center;justify-content:center;gap:9px;border:0;border-radius:11px;padding:13px 16px;cursor:pointer;background:var(--navy);color:#fff;font-weight:700;box-shadow:0 7px 15px rgba(37,59,103,.18)}
+    .primary-btn:hover{background:#1d3159;transform:translateY(-1px)}.secondary-btn{width:100%;min-height:50px;display:flex;align-items:center;justify-content:center;gap:8px;border:1px solid #bfc6da;border-radius:11px;padding:13px 16px;cursor:pointer;background:#fff;color:var(--ink);font-weight:700}
+    .secondary-btn:hover,.back-btn:hover{background:#f0f1f7}.back-btn{width:auto;min-height:38px;padding:0 11px;display:flex;align-items:center;gap:5px;border-radius:9px;border:1px solid #c7ccdb;color:var(--ink);background:#fff;cursor:pointer;font-size:13px;font-weight:700}
+    .home-content{opacity:0;transform:translateY(12px);transition:opacity .55s ease,transform .55s ease;pointer-events:none}.home-content.ready{opacity:1;transform:none;pointer-events:auto}
+    .face-stage{height:260px;display:grid;place-items:center;position:relative;overflow:hidden}.face-stage:before{content:"";position:absolute;width:210px;height:210px;border-radius:50%;background:radial-gradient(circle,#e3e6f5 0 31%,rgba(233,235,247,.45) 32% 57%,transparent 58%)}
+    .clinical-face{width:155px;height:204px;position:relative;z-index:1;filter:drop-shadow(0 14px 18px rgba(37,59,103,.15));animation:face-arrive 1.2s ease-out both}
+    .face-outline{fill:#f4d9c7;stroke:#4b4f8e;stroke-width:3}.face-feature{fill:none;stroke:#253b67;stroke-width:4;stroke-linecap:round}.face-droop{fill:none;stroke:#7d3044;stroke-width:5;stroke-linecap:round}.face-accent{fill:#b85d25}.face-center{stroke:#8c94ba;stroke-width:1.5;stroke-dasharray:4 5}
+    .palsy-side{transform-origin:112px 105px}.eye-lid{animation:lid-close 2.2s ease-in-out infinite}.mouth-corner{animation:mouth-pull 2.2s ease-in-out infinite}
+    @keyframes face-arrive{from{opacity:0;transform:scale(.9)}to{opacity:1;transform:scale(1)}}@keyframes lid-close{0%,100%{transform:scaleY(1)}50%{transform:scaleY(.35)}}@keyframes mouth-pull{0%,100%{transform:translateY(0)}50%{transform:translateY(-2px)}}
+    .guide-oval{border:2px solid #6670a8;border-radius:48% 48% 44% 44%;width:188px;height:244px;position:relative;box-shadow:0 0 0 13px rgba(75,79,142,.06)}.guide-oval:before,.guide-oval:after{content:"";position:absolute;background:#8d94b9}.guide-oval:before{width:1px;height:100%;left:50%}.guide-oval:after{height:1px;width:68%;top:51%;left:16%}
+    .corner{position:absolute;width:20px;height:20px;border:2px solid var(--orange)}.corner.tl{left:-4px;top:-4px;border-width:2px 0 0 2px}.corner.tr{right:-4px;top:-4px;border-width:2px 2px 0 0}.corner.bl{left:-4px;bottom:-4px;border-width:0 0 2px 2px}.corner.br{right:-4px;bottom:-4px;border-width:0 2px 2px 0}
+    .status-dot{width:8px;height:8px;border-radius:50%;background:var(--success);box-shadow:0 0 0 4px #e1eee6}.mesh-line{stroke:#4b4f8e;stroke-width:1.25;fill:none;opacity:.72}.mesh-point{fill:#b85d25}.scan-line{position:absolute;left:10%;right:10%;height:2px;top:20%;background:var(--orange);animation:scan 3s ease-in-out infinite}@keyframes scan{50%{top:78%}}
+    .stage-row{display:flex;gap:12px;align-items:center;padding:13px 0;border-bottom:1px solid var(--line)}.stage-row:last-child{border-bottom:0}.stage-icon{width:34px;height:34px;display:grid;place-items:center;border-radius:10px;background:var(--indigo-soft);color:var(--indigo)}.stage-row.active .stage-icon{box-shadow:0 0 0 5px rgba(75,79,142,.1)}
+    .metric{display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid var(--line);transition:.2s ease}.metric:last-child{border:0}.region-btn{border:1px solid #c7ccdb;background:#fff;border-radius:9px;padding:9px 11px;color:var(--ink);font-size:12px;cursor:pointer;white-space:nowrap}.region-btn.active{color:#fff;background:var(--indigo);border-color:var(--indigo);font-weight:700}
+    .chart-line{stroke:var(--indigo);stroke-width:3;fill:none;stroke-linecap:round}.chart-fill{fill:#dfe1f2}.chart-grid{stroke:#d9ddea}.timeline-dot{width:10px;height:10px;border-radius:50%;background:var(--orange);box-shadow:0 0 0 5px #f8e8dd}
+    @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}@media(max-width:500px){.app-shell{padding:0}.phone{width:100%;height:calc(100 * min(var(--vh,1vh),1vh));min-height:0;border-radius:0;border:0}}
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.577.0/dist/umd/lucide.min.js" type="text/javascript"></script>
+  <script src="https://cdn.tailwindcss.com/3.4.17" type="text/javascript"></script>
+  <script src="/_sdk/8de366929c5f3b48.data_sdk.js" type="text/javascript" integrity="sha512-TyQ8k8cZj66xe/aENmn6RyZpdOFZXbAo5+KBG3PeFM+Q4qMTHU8xAqmq4ADClNfPrstgQYV6OzZHwLTnElzB2g=="></script>
+  <script src="/_sdk/d80647b37084f0c6.editing_sdk.js" type="text/javascript" integrity="sha512-jCz+DtquKRDjnSrSxfhBCzqv2CNRnUAa0936TKD2DSOtf6OZkZ6z2RJ9PZqOhkoYVUsdKS+mJI9DS8ttXywBzw=="></script>
+  <script src="/_sdk/765e1fea0cec97ce.resizing_sdk.js" type="text/javascript" integrity="sha512-IRTJnqww0+HQ5V/LlWEQrlD5SrYHaVvaeVoNe8HYQXoaguzUGheSd9+n9s6WOgaTcEH0g37DuINHZ9aqfzWjlw=="></script>
+ </head>
+ <body data-template-id="__page-root" style="background: rgb(248, 247, 244);">
+  <main class="app-shell">
+   <section class="phone" aria-label="Facial Recovery AI">
+    <section id="opening" class="screen active flex flex-col justify-between" aria-labelledby="opening-title">
+     <div>
+      <div class="top-notch"></div>
+      <p data-template-id="opening-mark" class="canva-text eyebrow" style="color: rgb(75, 79, 142); font-weight: 700; font-style: normal; font-size: 11px; letter-spacing: 0.14rem;">Facial Recovery AI</p>
+      <div class="face-stage" aria-label="Stylized front-facing human facial portrait showing marked unilateral facial palsy">
+       <svg class="clinical-face" viewBox="0 0 155 204" role="img" aria-label="Clinical motion graphic of a face with one closed eyelid and strongly downward mouth movement">
+        <path class="face-outline" d="M78 8C38 8 22 42 25 93c2 34 13 57 30 71 7 6 8 21 13 29 3 5 6 8 10 8s7-3 10-8c5-8 6-23 13-29 17-14 28-37 30-71C134 42 118 8 78 8Z"></path> <path class="face-center" d="M78 23V180"></path> <path class="face-feature" d="M43 65Q55 57 67 65M89 65Q101 57 113 65"></path> <path class="face-feature" d="M46 82Q55 76 65 82"></path> <g class="palsy-side">
+         <path class="face-feature eye-lid" d="M91 82Q102 80 112 83"></path>
+         <path class="face-feature" d="M78 86L75 120L83 122"></path>
+         <path class="face-feature" d="M51 143Q64 151 78 146"></path>
+         <path class="face-droop mouth-corner" d="M78 146Q96 156 112 169"></path>
+        </g> <circle class="face-accent" cx="108" cy="118" r="4"></circle>
+       </svg>
+      </div>
+     </div>
+     <div id="home-content" class="home-content">
+      <h1 data-template-id="opening-title" class="canva-text display" style="color: rgb(23, 32, 51); font-weight: 700; font-style: normal; font-size: 32px;">A clearer view of recovery.</h1>
+      <p data-template-id="opening-copy" class="canva-text muted mt-4" style="color: rgb(82, 96, 121); font-weight: 400; font-style: normal; font-size: 16px;">Clinical-grade facial movement insights, designed for calm, informed follow-up.</p><button data-template-id="opening-button" class="canva-button primary-btn mt-7" type="button" data-next="onboarding" style="background: rgb(37, 59, 103); color: rgb(255, 255, 255); font-weight: 700;"><span data-template-id="opening-button-label" class="canva-text" style="color: rgb(255, 255, 255); font-weight: 700; font-style: normal; font-size: 16px;">Begin assessment</span><i data-lucide="arrow-right" class="w-4 h-4"></i></button>
+     </div>
+    </section>
+    <section id="onboarding" class="screen flex flex-col justify-between" aria-labelledby="onboarding-title">
+     <div>
+      <div class="top-notch"></div>
+      <div class="flex items-center justify-between"><button class="back-btn" type="button" data-back="" aria-label="Go back"><i data-lucide="chevron-left" class="w-4 h-4"></i>Back</button><span class="text-xs text-[#526079]">01 / 06</span>
+      </div>
+      <p data-template-id="onboarding-mark" class="canva-text eyebrow mt-6" style="color: rgb(75, 79, 142); font-weight: 700; font-style: normal; font-size: 11px; letter-spacing: 0.14rem;">Clinical companion</p>
+      <div class="mt-5 clinical-card p-5">
+       <div class="w-11 h-11 rounded-xl bg-[#e9ebf7] flex items-center justify-center text-[#4b4f8e]"><i data-lucide="scan-face" class="w-5 h-5"></i>
+       </div>
+       <h1 data-template-id="onboarding-title" class="canva-text display mt-6" style="color: rgb(23, 32, 51); font-weight: 700; font-style: normal; font-size: 32px;">Assessment with context.</h1>
+       <p data-template-id="onboarding-copy" class="canva-text muted mt-3" style="color: rgb(82, 96, 121); font-weight: 400; font-style: normal; font-size: 16px;">A guided visual assessment helps you document facial symmetry and movement between clinical visits.</p>
+      </div>
+      <div class="mt-7 space-y-3 text-sm">
+       <div class="flex gap-3 items-center"><i data-lucide="shield-check" class="w-4 h-4 text-[#4b4f8e]"></i><span data-template-id="benefit-one" class="canva-text" style="color: rgb(23, 32, 51); font-weight: 400; font-style: normal; font-size: 14px;">Structured, repeatable capture guidance</span>
+       </div>
+       <div class="flex gap-3 items-center"><i data-lucide="activity" class="w-4 h-4 text-[#4b4f8e]"></i><span data-template-id="benefit-two" class="canva-text" style="color: rgb(23, 32, 51); font-weight: 400; font-style: normal; font-size: 14px;">Clear symmetry and movement trends</span>
+       </div>
+       <div class="flex gap-3 items-center"><i data-lucide="sparkles" class="w-4 h-4 text-[#4b4f8e]"></i><span data-template-id="benefit-three" class="canva-text" style="color: rgb(23, 32, 51); font-weight: 400; font-style: normal; font-size: 14px;">Explainable visual AI findings</span>
+       </div>
+      </div>
+     </div>
+     <div>
+      <p data-template-id="onboarding-note" class="canva-text text-xs text-center mb-4" style="color: rgb(82, 96, 121); font-weight: 400; font-style: normal; font-size: 12px;">This visual tool supports, but does not replace, clinical care.</p><button data-template-id="onboarding-button" class="canva-button primary-btn" type="button" data-next="capture" style="background: rgb(37, 59, 103); color: rgb(255, 255, 255); font-weight: 700;"><span data-template-id="onboarding-button-label" class="canva-text" style="color: rgb(255, 255, 255); font-weight: 700; font-style: normal; font-size: 16px;">Start guided capture</span><i data-lucide="arrow-right" class="w-4 h-4"></i></button>
+     </div>
+    </section>
+    <section id="capture" class="screen flex flex-col" aria-labelledby="capture-title">
+     <div class="top-notch"></div>
+     <div class="flex items-center gap-3"><button class="back-btn" type="button" data-back="" aria-label="Go back"><i data-lucide="chevron-left" class="w-4 h-4"></i>Back</button>
+      <p data-template-id="capture-mark" class="canva-text eyebrow" style="color: rgb(75, 79, 142); font-weight: 700; font-style: normal; font-size: 11px; letter-spacing: 0.14rem;">Guided capture</p>
+     </div>
+     <h1 data-template-id="capture-title" class="canva-text display mt-7" style="color: rgb(23, 32, 51); font-weight: 700; font-style: normal; font-size: 30px;">Find a calm, even light.</h1>
+     <p data-template-id="capture-copy" class="canva-text muted mt-3" style="color: rgb(82, 96, 121); font-weight: 400; font-style: normal; font-size: 16px;">Center your face in the guide and hold a relaxed, neutral expression.</p>
+     <div class="clinical-card flex-1 min-h-[300px] mt-7 flex flex-col items-center justify-center relative overflow-hidden">
+      <div class="guide-oval"><span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>
+      </div>
+      <div class="absolute bottom-5 flex items-center gap-2 text-xs"><span class="status-dot"></span><span data-template-id="capture-status" class="canva-text" style="color: rgb(23, 32, 51); font-weight: 400; font-style: normal; font-size: 12px;">Position quality: good</span>
+      </div>
+     </div>
+     <div class="grid grid-cols-3 gap-2 mt-5 text-center">
+      <div><b class="text-[#4b4f8e]">01</b><span data-template-id="capture-step-one" class="canva-text block text-[11px] mt-1" style="color: rgb(82, 96, 121); font-weight: 400; font-style: normal; font-size: 11px;">Neutral face</span>
+      </div>
+      <div><b class="text-[#4b4f8e]">02</b><span data-template-id="capture-step-two" class="canva-text block text-[11px] mt-1" style="color: rgb(82, 96, 121); font-weight: 400; font-style: normal; font-size: 11px;">Look ahead</span>
+      </div>
+      <div><b class="text-[#4b4f8e]">03</b><span data-template-id="capture-step-three" class="canva-text block text-[11px] mt-1" style="color: rgb(82, 96, 121); font-weight: 400; font-style: normal; font-size: 11px;">Hold still</span>
+      </div>
+     </div><button data-template-id="capture-button" class="canva-button primary-btn mt-6" type="button" data-next="landmarks" style="background: rgb(37, 59, 103); color: rgb(255, 255, 255); font-weight: 700;"><i data-lucide="scan" class="w-4 h-4"></i><span data-template-id="capture-button-label" class="canva-text" style="color: rgb(255, 255, 255); font-weight: 700; font-style: normal; font-size: 16px;">Continue to landmark scan</span></button>
+    </section>
+    <section id="landmarks" class="screen flex flex-col" aria-labelledby="landmark-title">
+     <div class="top-notch"></div>
+     <div class="flex items-center justify-between"><button class="back-btn" type="button" data-back="" aria-label="Go back"><i data-lucide="chevron-left" class="w-4 h-4"></i>Back</button><span class="flex gap-2 items-center text-xs"><span class="status-dot"></span><span data-template-id="landmark-live" class="canva-text" style="color: rgb(23, 32, 51); font-weight: 400; font-style: normal; font-size: 12px;">Tracking</span></span>
+     </div>
+     <p data-template-id="landmark-mark" class="canva-text eyebrow mt-6" style="color: rgb(75, 79, 142); font-weight: 700; font-style: normal; font-size: 11px; letter-spacing: 0.14rem;">Live landmark mapping</p>
+     <h1 data-template-id="landmark-title" class="canva-text display mt-4" style="color: rgb(23, 32, 51); font-weight: 700; font-style: normal; font-size: 30px;">Mapping facial movement.</h1>
+     <div class="clinical-card mt-5 p-3 relative overflow-hidden">
+      <svg viewBox="0 0 300 280" class="w-full h-[250px]" aria-label="Facial landmark visualization"><path d="M150 20C90 20 70 70 75 128c3 42 18 67 40 86 9 8 10 29 17 43 4 9 10 14 18 14s14-5 18-14c7-14 8-35 17-43 22-19 37-44 40-86 5-58-15-108-75-108Z" fill="#eef0f8" stroke="#4b4f8e"></path><path class="mesh-line" d="M103 78 150 48 197 78 215 128 194 205 150 245 106 205 85 128ZM85 128 150 108 215 128M106 205 150 170 194 205M103 78 125 126 150 48 175 126 197 78M125 126 150 170 175 126"></path><g class="mesh-point">
+        <circle cx="103" cy="78" r="3"></circle>
+        <circle cx="150" cy="48" r="3"></circle>
+        <circle cx="197" cy="78" r="3"></circle>
+        <circle cx="85" cy="128" r="3"></circle>
+        <circle cx="125" cy="126" r="3"></circle>
+        <circle cx="150" cy="108" r="3"></circle>
+        <circle cx="175" cy="126" r="3"></circle>
+        <circle cx="215" cy="128" r="3"></circle>
+        <circle cx="106" cy="205" r="3"></circle>
+        <circle cx="150" cy="170" r="3"></circle>
+        <circle cx="194" cy="205" r="3"></circle>
+       </g>
+      </svg>
+      <div class="scan-line"></div>
+     </div>
+     <div class="clinical-card p-4 mt-5">
+      <div class="stage-row active">
+       <div class="stage-icon"><i data-lucide="scan-face" class="w-4 h-4"></i>
+       </div>
+       <div><span data-template-id="landmark-stage-one" class="canva-text text-sm font-semibold" style="color: rgb(23, 32, 51); font-weight: 600; font-style: normal; font-size: 14px;">468 landmarks localized</span>
+        <p data-template-id="landmark-stage-one-copy" class="canva-text text-xs mt-1" style="color: rgb(82, 96, 121); font-weight: 400; font-style: normal; font-size: 12px;">Stable facial geometry detected</p>
+       </div>
+      </div>
+      <div class="stage-row">
+       <div class="stage-icon"><i data-lucide="move-horizontal" class="w-4 h-4"></i>
+       </div><span data-template-id="landmark-stage-two" class="canva-text text-sm" style="color: rgb(23, 32, 51); font-weight: 400; font-style: normal; font-size: 14px;">Movement vectors ready</span>
+      </div>
+     </div><button data-template-id="landmark-button" class="canva-button primary-btn mt-auto" type="button" data-next="symmetry" style="background: rgb(37, 59, 103); color: rgb(255, 255, 255); font-weight: 700;"><span data-template-id="landmark-button-label" class="canva-text" style="color: rgb(255, 255, 255); font-weight: 700; font-style: normal; font-size: 16px;">Review symmetry</span><i data-lucide="arrow-right" class="w-4 h-4"></i></button>
+    </section>
+    <section id="symmetry" class="screen" aria-labelledby="symmetry-title">
+     <div class="top-notch"></div>
+     <div class="flex gap-3 items-center"><button class="back-btn" type="button" data-back="" aria-label="Go back"><i data-lucide="chevron-left" class="w-4 h-4"></i>Back</button>
+      <p data-template-id="symmetry-mark" class="canva-text eyebrow" style="color: rgb(75, 79, 142); font-weight: 700; font-style: normal; font-size: 11px; letter-spacing: 0.14rem;">Symmetry analysis</p>
+     </div>
+     <h1 data-template-id="symmetry-title" class="canva-text display mt-6" style="color: rgb(23, 32, 51); font-weight: 700; font-style: normal; font-size: 30px;">A balanced clinical view.</h1>
+     <p data-template-id="symmetry-copy" class="canva-text muted text-sm mt-2" style="color: rgb(82, 96, 121); font-weight: 400; font-style: normal; font-size: 14px;">The centerline compares resting facial position across key regions.</p>
+     <div class="clinical-card h-[270px] mt-5 relative overflow-hidden flex items-center justify-center">
+      <div class="absolute left-1/2 top-5 bottom-5 border-l border-dashed border-[#6c73a3]"></div>
+      <div class="w-[178px] h-[210px] rounded-[45%] border-2 border-[#7279aa] bg-[#f1f2f8] relative"><span class="absolute w-8 h-6 rounded-full bg-[#b85d25] opacity-70 left-[26px] top-[70px]"></span><span class="absolute w-9 h-5 rounded-full bg-[#7d3044] opacity-70 right-[23px] top-[128px]"></span>
+      </div>
+      <div class="absolute bottom-4 flex gap-2 items-center text-xs"><span class="w-2 h-2 rounded-full bg-[#b85d25]"></span><span data-template-id="symmetry-legend" class="canva-text" style="color: rgb(23, 32, 51); font-weight: 400; font-style: normal; font-size: 12px;">Mild asymmetry signal</span>
+      </div>
+     </div>
+     <div class="clinical-card px-4 mt-5">
+      <div class="metric"><span data-template-id="symmetry-metric-one" class="canva-text text-sm" style="color: rgb(23, 32, 51); font-weight: 400; font-style: normal; font-size: 14px;">Resting symmetry</span><strong class="text-[#3e6b53]">86%</strong>
+      </div>
+      <div class="metric"><span data-template-id="symmetry-metric-two" class="canva-text text-sm" style="color: rgb(23, 32, 51); font-weight: 400; font-style: normal; font-size: 14px;">Oral commissure offset</span><strong class="text-[#b85d25]">2.1 mm</strong>
+      </div>
+      <div class="metric"><span data-template-id="symmetry-metric-three" class="canva-text text-sm" style="color: rgb(23, 32, 51); font-weight: 400; font-style: normal; font-size: 14px;">Eye closure difference</span><strong class="text-[#b85d25]">8.4%</strong>
+      </div>
+     </div><button data-template-id="symmetry-button" class="canva-button primary-btn mt-6" type="button" data-next="analysis" style="background: rgb(37, 59, 103); color: rgb(255, 255, 255); font-weight: 700;"><span data-template-id="symmetry-button-label" class="canva-text" style="color: rgb(255, 255, 255); font-weight: 700; font-style: normal; font-size: 16px;">Run AI assessment</span><i data-lucide="sparkles" class="w-4 h-4"></i></button>
+    </section>
+    <section id="analysis" class="screen flex flex-col justify-between" aria-labelledby="analysis-title">
+     <div>
+      <div class="top-notch"></div>
+      <div class="flex items-center gap-3"><button class="back-btn" type="button" data-back="" aria-label="Go back"><i data-lucide="chevron-left" class="w-4 h-4"></i>Back</button>
+       <p data-template-id="analysis-mark" class="canva-text eyebrow" style="color: rgb(75, 79, 142); font-weight: 700; font-style: normal; font-size: 11px; letter-spacing: 0.14rem;">Clinical AI review</p>
+      </div>
+      <div class="mt-9 flex justify-center">
+       <div class="w-[92px] h-[92px] rounded-full border-[8px] border-[#e1e4ef] border-t-[#4b4f8e] border-r-[#b85d25] grid place-items-center"><i data-lucide="brain-circuit" class="w-8 h-8 text-[#253b67]"></i>
+       </div>
+      </div>
+      <h1 data-template-id="analysis-title" class="canva-text display text-center mt-8" style="color: rgb(23, 32, 51); font-weight: 700; font-style: normal; font-size: 30px;">Interpreting movement patterns.</h1>
+      <p data-template-id="analysis-copy" class="canva-text muted text-center text-sm mt-3" style="color: rgb(82, 96, 121); font-weight: 400; font-style: normal; font-size: 14px;">Combining symmetry, landmark motion, and clinical grading features.</p>
+      <div class="clinical-card p-4 mt-8">
+       <div class="stage-row">
+        <div class="stage-icon"><i data-lucide="check" class="w-4 h-4"></i>
+        </div><span data-template-id="analysis-stage-one" class="canva-text text-sm" style="color: rgb(23, 32, 51); font-weight: 400; font-style: normal; font-size: 14px;">Geometry quality verified</span>
+       </div>
+       <div class="stage-row">
+        <div class="stage-icon"><i data-lucide="check" class="w-4 h-4"></i>
+        </div><span data-template-id="analysis-stage-two" class="canva-text text-sm" style="color: rgb(23, 32, 51); font-weight: 400; font-style: normal; font-size: 14px;">Regional motion compared</span>
+       </div>
+       <div class="stage-row active">
+        <div class="stage-icon"><i data-lucide="activity" class="w-4 h-4"></i>
+        </div><span data-template-id="analysis-stage-three" class="canva-text text-sm" style="color: rgb(23, 32, 51); font-weight: 400; font-style: normal; font-size: 14px;">Preparing clinical summary</span>
+       </div>
+      </div>
+     </div><button data-template-id="analysis-button" class="canva-button primary-btn mt-8" type="button" data-next="result" style="background: rgb(37, 59, 103); color: rgb(255, 255, 255); font-weight: 700;"><span data-template-id="analysis-button-label" class="canva-text" style="color: rgb(255, 255, 255); font-weight: 700; font-style: normal; font-size: 16px;">View assessment</span><i data-lucide="arrow-right" class="w-4 h-4"></i></button>
+    </section>
+    <section id="result" class="screen" aria-labelledby="result-title">
+     <div class="top-notch"></div>
+     <div class="flex items-center justify-between"><button class="back-btn" type="button" data-back="" aria-label="Go back"><i data-lucide="chevron-left" class="w-4 h-4"></i>Back</button>
+      <p data-template-id="result-mark" class="canva-text eyebrow" style="color: rgb(75, 79, 142); font-weight: 700; font-style: normal; font-size: 11px; letter-spacing: 0.14rem;">Assessment summary</p>
+     </div>
+     <div class="clinical-card p-6 mt-7 text-center bg-[#f4f4fa]">
+      <p data-template-id="result-grade-label" class="canva-text text-xs uppercase tracking-[.16em]" style="color: rgb(82, 96, 121); font-weight: 700; font-style: normal; font-size: 11px; letter-spacing: 0.14rem;">House-Brackmann grade</p>
+      <h1 data-template-id="result-title" class="canva-text display mt-3" style="color: rgb(37, 59, 103); font-weight: 700; font-style: normal; font-size: 48px;">Grade II</h1>
+      <p data-template-id="result-subtitle" class="canva-text text-sm mt-2" style="color: rgb(23, 32, 51); font-weight: 400; font-style: normal; font-size: 14px;">Mild dysfunction</p>
+      <div class="h-2 rounded-full bg-[#d9ddea] mt-6 overflow-hidden">
+       <div class="h-full w-[78%] bg-[#4b4f8e]"></div>
+      </div>
+      <p data-template-id="result-confidence" class="canva-text text-xs mt-3" style="color: rgb(82, 96, 121); font-weight: 400; font-style: normal; font-size: 12px;">Assessment confidence: 92%</p>
+     </div>
+     <div class="clinical-card p-5 mt-5">
+      <div class="flex gap-3">
+       <div class="w-9 h-9 rounded-xl bg-[#e9ebf7] text-[#4b4f8e] grid place-items-center shrink-0"><i data-lucide="clipboard-check" class="w-4 h-4"></i>
+       </div>
+       <div>
+        <h2 data-template-id="result-recommendation-title" class="canva-text text-sm font-semibold" style="color: rgb(23, 32, 51); font-weight: 600; font-style: normal; font-size: 14px;">Clinical interpretation</h2>
+        <p data-template-id="result-recommendation-copy" class="canva-text text-sm leading-6 mt-2" style="color: rgb(82, 96, 121); font-weight: 400; font-style: normal; font-size: 14px;">Resting symmetry is largely preserved, with mild differences in lower facial movement. Track changes consistently and share findings with your clinician.</p>
+       </div>
+      </div>
+     </div>
+     <div class="grid grid-cols-2 gap-3 mt-5"><button data-template-id="result-detail-button" class="canva-button secondary-btn text-sm" type="button" data-next="explain" style="background: rgb(255, 255, 255); color: rgb(23, 32, 51); font-weight: 700; font-size: 14px;"><i data-lucide="scan-search" class="w-4 h-4"></i><span data-template-id="result-detail-button-label" class="canva-text" style="color: rgb(23, 32, 51); font-weight: 700; font-style: normal; font-size: 14px;">View details</span></button><button data-template-id="result-progress-button" class="canva-button primary-btn text-sm" type="button" data-next="dashboard" style="background: rgb(37, 59, 103); color: rgb(255, 255, 255); font-weight: 700; font-size: 14px;"><i data-lucide="trending-up" class="w-4 h-4"></i><span data-template-id="result-progress-button-label" class="canva-text" style="color: rgb(255, 255, 255); font-weight: 700; font-style: normal; font-size: 14px;">Recovery trend</span></button>
+     </div>
+    </section>
+    <section id="explain" class="screen" aria-labelledby="explain-title">
+     <div class="top-notch"></div>
+     <div class="flex gap-3 items-center"><button class="back-btn" type="button" data-back="" aria-label="Go back"><i data-lucide="chevron-left" class="w-4 h-4"></i>Back</button>
+      <p data-template-id="explain-mark" class="canva-text eyebrow" style="color: rgb(75, 79, 142); font-weight: 700; font-style: normal; font-size: 11px; letter-spacing: 0.14rem;">Explainable assessment</p>
+     </div>
+     <h1 data-template-id="explain-title" class="canva-text display mt-6" style="color: rgb(23, 32, 51); font-weight: 700; font-style: normal; font-size: 30px;">See what informed the result.</h1>
+     <p data-template-id="explain-copy" class="canva-text muted text-sm mt-2" style="color: rgb(82, 96, 121); font-weight: 400; font-style: normal; font-size: 14px;">Select a region to connect its movement measurement to the clinical summary.</p>
+     <div class="clinical-card mt-5 h-[205px] flex justify-center items-center">
+      <div class="w-[148px] h-[177px] rounded-[46%] border-2 border-[#737aac] bg-[#f2f2f8] relative"><span id="region-eye" class="absolute left-[26px] top-[57px] w-8 h-4 rounded-full bg-[#b85d25]"></span><span id="region-mouth" class="absolute right-[21px] top-[108px] w-9 h-5 rounded-full bg-[#7d3044]"></span><span id="region-brow" class="absolute left-[25px] top-[38px] w-9 h-2 rounded-full bg-[#4b4f8e]"></span><span class="absolute left-1/2 top-4 bottom-4 border-l border-dashed border-[#6c73a3]"></span>
+      </div>
+     </div>
+     <div class="flex gap-2 mt-4 overflow-x-auto pb-1"><button class="region-btn active" type="button" data-region="eye">Eye closure</button><button class="region-btn" type="button" data-region="mouth">Mouth movement</button><button class="region-btn" type="button" data-region="brow">Brow lift</button>
+     </div>
+     <div class="clinical-card px-4 mt-4">
+      <div class="metric" data-measurement="eye"><span data-template-id="explain-measure-one" class="canva-text text-sm" style="color: rgb(23, 32, 51); font-weight: 400; font-style: normal; font-size: 14px;">Eye closure excursion</span><strong class="text-[#b85d25]">91.6%</strong>
+      </div>
+      <div class="metric" data-measurement="mouth"><span data-template-id="explain-measure-two" class="canva-text text-sm" style="color: rgb(23, 32, 51); font-weight: 400; font-style: normal; font-size: 14px;">Oral movement symmetry</span><strong class="text-[#7d3044]">82.4%</strong>
+      </div>
+      <div class="metric" data-measurement="brow"><span data-template-id="explain-measure-three" class="canva-text text-sm" style="color: rgb(23, 32, 51); font-weight: 400; font-style: normal; font-size: 14px;">Brow elevation balance</span><strong class="text-[#4b4f8e]">89.1%</strong>
+      </div>
+     </div><button data-template-id="explain-button" class="canva-button primary-btn mt-6" type="button" data-next="dashboard" style="background: rgb(37, 59, 103); color: rgb(255, 255, 255); font-weight: 700;"><span data-template-id="explain-button-label" class="canva-text" style="color: rgb(255, 255, 255); font-weight: 700; font-style: normal; font-size: 16px;">Open recovery dashboard</span><i data-lucide="arrow-right" class="w-4 h-4"></i></button>
+    </section>
+    <section id="dashboard" class="screen" aria-labelledby="dashboard-title">
+     <div class="top-notch"></div><button class="back-btn mb-5" type="button" data-back="" aria-label="Go back"><i data-lucide="chevron-left" class="w-4 h-4"></i>Back</button>
+     <p data-template-id="dashboard-mark" class="canva-text eyebrow" style="color: rgb(75, 79, 142); font-weight: 700; font-style: normal; font-size: 11px; letter-spacing: 0.14rem;">Recovery monitoring</p>
+     <h1 data-template-id="dashboard-title" class="canva-text display mt-2" style="color: rgb(23, 32, 51); font-weight: 700; font-style: normal; font-size: 30px;">Your recovery trend.</h1>
+     <div class="grid grid-cols-2 gap-3 mt-6">
+      <div class="clinical-card p-4">
+       <p data-template-id="dashboard-card-one-label" class="canva-text text-[11px] uppercase tracking-wider" style="color: rgb(82, 96, 121); font-weight: 700; font-style: normal; font-size: 11px; letter-spacing: 0.08rem;">Current symmetry</p>
+       <p data-template-id="dashboard-card-one-value" class="canva-text text-[28px] font-bold mt-2" style="color: rgb(37, 59, 103); font-weight: 700; font-style: normal; font-size: 28px;">86%</p>
+       <p data-template-id="dashboard-card-one-note" class="canva-text text-xs mt-1" style="color: rgb(62, 107, 83); font-weight: 400; font-style: normal; font-size: 12px;">+7% from baseline</p>
+      </div>
+      <div class="clinical-card p-4">
+       <p data-template-id="dashboard-card-two-label" class="canva-text text-[11px] uppercase tracking-wider" style="color: rgb(82, 96, 121); font-weight: 700; font-style: normal; font-size: 11px; letter-spacing: 0.08rem;">Assessment grade</p>
+       <p data-template-id="dashboard-card-two-value" class="canva-text text-[28px] font-bold mt-2" style="color: rgb(37, 59, 103); font-weight: 700; font-style: normal; font-size: 28px;">II</p>
+       <p data-template-id="dashboard-card-two-note" class="canva-text text-xs mt-1" style="color: rgb(82, 96, 121); font-weight: 400; font-style: normal; font-size: 12px;">Improving pattern</p>
+      </div>
+     </div>
+     <div class="clinical-card p-4 mt-5">
+      <div class="flex items-center justify-between">
+       <h2 data-template-id="dashboard-chart-title" class="canva-text text-sm font-semibold" style="color: rgb(23, 32, 51); font-weight: 600; font-style: normal; font-size: 14px;">Facial symmetry index</h2>
+       <div class="flex gap-1 p-1 rounded-lg bg-[#eef0f6]"><button class="px-2 py-1 rounded text-[10px] bg-[#4b4f8e] text-white" type="button" data-chart="30">30D</button><button class="px-2 py-1 rounded text-[10px] text-[#526079]" type="button" data-chart="90">90D</button>
+       </div>
+      </div>
+      <svg viewBox="0 0 320 135" class="w-full mt-4" aria-label="Facial symmetry recovery trend chart"><path class="chart-grid" d="M0 18H320M0 63H320M0 108H320"></path><path id="trend-fill" class="chart-fill" d="M0 112 L0 98 C35 94 53 91 78 94 S116 77 137 80 S170 70 190 73 S231 54 254 57 S290 36 320 28 L320 112Z"></path><path id="trend-path" class="chart-line" d="M0 98 C35 94 53 91 78 94 S116 77 137 80 S170 70 190 73 S231 54 254 57 S290 36 320 28"></path><circle cx="320" cy="28" r="4.5" fill="#b85d25"></circle>
+      </svg>
+      <div class="flex justify-between text-[10px] text-[#526079] mt-1"><span>Sep 01</span><span>Sep 15</span><span>Today</span>
+      </div>
+     </div>
+     <div class="mt-5">
+      <h2 data-template-id="dashboard-history-title" class="canva-text text-sm font-semibold mb-3" style="color: rgb(23, 32, 51); font-weight: 600; font-style: normal; font-size: 14px;">Recent assessments</h2>
+      <div class="space-y-3">
+       <div class="flex gap-3 items-center"><span class="timeline-dot"></span>
+        <div class="clinical-card flex-1 p-3 flex justify-between">
+         <div><span data-template-id="history-one-date" class="canva-text text-sm font-semibold" style="color: rgb(23, 32, 51); font-weight: 600; font-style: normal; font-size: 14px;">Today</span>
+          <p data-template-id="history-one-note" class="canva-text text-xs mt-1" style="color: rgb(82, 96, 121); font-weight: 400; font-style: normal; font-size: 12px;">Grade II · 86% symmetry</p>
+         </div><i data-lucide="chevron-right" class="w-4 h-4 text-[#526079]"></i>
+        </div>
+       </div>
+       <div class="flex gap-3 items-center"><span class="timeline-dot opacity-50"></span>
+        <div class="clinical-card flex-1 p-3 flex justify-between opacity-80">
+         <div><span data-template-id="history-two-date" class="canva-text text-sm font-semibold" style="color: rgb(23, 32, 51); font-weight: 600; font-style: normal; font-size: 14px;">14 days ago</span>
+          <p data-template-id="history-two-note" class="canva-text text-xs mt-1" style="color: rgb(82, 96, 121); font-weight: 400; font-style: normal; font-size: 12px;">Grade III · 81% symmetry</p>
+         </div><i data-lucide="chevron-right" class="w-4 h-4 text-[#526079]"></i>
+        </div>
+       </div>
+      </div>
+     </div>
+    </section>
+   </section>
+  </main>
+  <script>
+    document.addEventListener("DOMContentLoaded",()=>{
+      lucide.createIcons();
+      const historyStack=["opening"];
+      const reducedMotion=window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const homeContent=document.getElementById("home-content");
+      window.setTimeout(()=>homeContent.classList.add("ready"),reducedMotion?100:1450);
+
+      function showScreen(id,addToHistory=true){
+        const current=document.querySelector(".screen.active");
+        const target=document.getElementById(id);
+        if(!target||target===current)return;
+        if(current){current.classList.add("exit-left");current.classList.remove("active");window.setTimeout(()=>current.classList.remove("exit-left"),320)}
+        target.classList.add("active");
+        if(addToHistory)historyStack.push(id);
+        target.scrollTop=0;
+      }
+      function goBack(){if(historyStack.length<=1)return;historyStack.pop();showScreen(historyStack[historyStack.length-1],false)}
+      document.querySelectorAll("[data-next]").forEach(button=>button.addEventListener("click",()=>showScreen(button.dataset.next)));
+      document.querySelectorAll("[data-back]").forEach(button=>button.addEventListener("click",goBack));
+      document.querySelectorAll(".region-btn").forEach(button=>button.addEventListener("click",()=>{
+        document.querySelectorAll(".region-btn").forEach(item=>item.classList.toggle("active",item===button));
+        const selected=button.dataset.region;
+        document.querySelectorAll("[data-measurement]").forEach(row=>{
+          const active=row.dataset.measurement===selected;
+          row.style.background=active?"#f0f1f8":"transparent";
+          row.style.marginInline=active?"-16px":"0";
+          row.style.paddingInline=active?"16px":"0";
+        });
+        ["eye","mouth","brow"].forEach(region=>document.getElementById("region-"+region).style.opacity=region===selected?"1":".25");
+      }));
+      document.querySelectorAll("[data-chart]").forEach(button=>button.addEventListener("click",()=>{
+        document.querySelectorAll("[data-chart]").forEach(item=>item.className=item===button?"px-2 py-1 rounded text-[10px] bg-[#4b4f8e] text-white":"px-2 py-1 rounded text-[10px] text-[#526079]");
+        const longRange=button.dataset.chart==="90";
+        const d=longRange?"M0 105 C29 104 47 93 72 96 S108 86 128 88 S158 74 183 78 S221 61 248 59 S287 42 320 28":"M0 98 C35 94 53 91 78 94 S116 77 137 80 S170 70 190 73 S231 54 254 57 S290 36 320 28";
+        document.getElementById("trend-path").setAttribute("d",d);
+        document.getElementById("trend-fill").setAttribute("d","M0 112 L0 "+(longRange?"105":"98")+d.slice(d.indexOf(" C"))+" L320 112Z");
+      }));
+    });
+  </script>
+ 
+</body></html>
