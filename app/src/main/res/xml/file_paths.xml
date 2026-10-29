@@ -1,5 +1,3 @@
 <?xml version="1.0" encoding="utf-8"?>
-<paths>
-    <!-- ReportExporter writes PDFs to cacheDir/reports -->
     <cache-path name="reports" path="reports/" />
 </paths>

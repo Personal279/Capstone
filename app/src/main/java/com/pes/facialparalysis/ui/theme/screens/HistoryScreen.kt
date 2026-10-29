@@ -1,5 +1,6 @@
 package com.pes.facialparalysis.ui.screens
 
+import android.graphics.BitmapFactory
 import android.graphics.Color as AndroidColor
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -31,7 +32,9 @@ import com.github.mikephil.charting.data.LineDataSet
 import com.github.mikephil.charting.formatter.ValueFormatter
 import com.pes.facialparalysis.data.AppDatabase
 import com.pes.facialparalysis.data.AssessmentRecord
+import com.pes.facialparalysis.data.ImageStore
 import com.pes.facialparalysis.data.SelectedPatientHolder
+import com.pes.facialparalysis.ui.components.OneViewImage
 import com.pes.facialparalysis.ui.theme.AppColors
 import com.pes.facialparalysis.ui.theme.components.clinicalBackgroundBrush
 import java.text.SimpleDateFormat
@@ -86,6 +89,8 @@ fun HistoryScreen(
         )
         Spacer(modifier = Modifier.height(16.dp))
 
+        PatientPhotosCard(patientId)
+
         when {
             isLoading -> {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -119,6 +124,79 @@ fun HistoryScreen(
                 }
             }
         }
+    }
+}
+
+/**
+ * Two stored photos per patient — first ever ("baseline") and most recent
+ * ("latest"), each behind a one-view (tap-to-reveal) gate. ImageStore only
+ * keeps these two files, so this card (not a per-row thumbnail) is where
+ * they're shown.
+ */
+@Composable
+private fun PatientPhotosCard(patientId: Int) {
+    val context = LocalContext.current
+    // Re-checked on every composition of this screen (cheap file existence
+    // check) so a photo taken just now shows up without extra plumbing.
+    val baselineFile = remember(patientId) { ImageStore.getBaseline(context, patientId) }
+    val latestFile = remember(patientId) { ImageStore.getLatest(context, patientId) }
+
+    if (baselineFile == null && latestFile == null) return
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .border(BorderStroke(1.dp, AppColors.Border), RoundedCornerShape(12.dp))
+            .background(AppColors.Surface)
+            .padding(12.dp)
+    ) {
+        Text(
+            text = "Photos",
+            fontSize = 13.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = AppColors.TextPrimary
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text("Baseline (first)", fontSize = 11.sp, color = AppColors.TextSecondary)
+                Spacer(modifier = Modifier.height(4.dp))
+                if (baselineFile != null) {
+                    val bmp = remember(baselineFile) { BitmapFactory.decodeFile(baselineFile.absolutePath) }
+                    if (bmp != null) OneViewImage(bitmap = bmp, height = 140.dp)
+                } else {
+                    NoPhotoPlaceholder()
+                }
+            }
+            Column(modifier = Modifier.weight(1f)) {
+                Text("Latest", fontSize = 11.sp, color = AppColors.TextSecondary)
+                Spacer(modifier = Modifier.height(4.dp))
+                if (latestFile != null) {
+                    val bmp = remember(latestFile) { BitmapFactory.decodeFile(latestFile.absolutePath) }
+                    if (bmp != null) OneViewImage(bitmap = bmp, height = 140.dp)
+                } else {
+                    NoPhotoPlaceholder()
+                }
+            }
+        }
+    }
+    Spacer(modifier = Modifier.height(20.dp))
+}
+
+@Composable
+private fun NoPhotoPlaceholder() {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(140.dp)
+            .clip(RoundedCornerShape(12.dp))
+            .background(AppColors.SurfaceMuted),
+        contentAlignment = Alignment.Center
+    ) {
+        Text("No photo yet", fontSize = 12.sp, color = AppColors.TextSecondary)
     }
 }
 
