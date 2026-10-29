@@ -28,6 +28,7 @@ import com.pes.facialparalysis.data.AppDatabase
 import com.pes.facialparalysis.data.AssessmentRecord
 import com.pes.facialparalysis.data.CapturedImageHolder
 import com.pes.facialparalysis.data.CapturedVideoHolder
+import com.pes.facialparalysis.data.PatientImageStore
 import com.pes.facialparalysis.data.SelectedPatientHolder
 import com.pes.facialparalysis.data.XaiDataHolder
 import com.pes.facialparalysis.ml.ExplanationGenerator
@@ -57,6 +58,7 @@ import com.pes.facialparalysis.ui.theme.components.clinicalBackgroundBrush
 import com.google.mediapipe.tasks.components.containers.NormalizedLandmark
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import org.json.JSONObject
 
 private data class ScreenResult(
     val grade: Int? = null,
@@ -73,12 +75,31 @@ private data class ScreenResult(
     val scanQuality: ScanQualityChecker.ScanQualityResult? = null
 )
 
+/**
+ * Keeps the finished result for the current result flow so that returning from
+ * "View details" / "Full report" does not re-run the analysis (the captured image is
+ * already consumed by then). Cleared when the user taps "Back to home".
+ */
+private object ResultCache {
+    var outcome: ScreenResult? = null
+    var recordId: Int? = null
+    fun clear() {
+        outcome = null
+        recordId = null
+    }
+}
+
 /** Visual stage of the (single, uninterrupted) analysis pipeline — purely a UI-progress label
  * driven by real checkpoints in that pipeline; it never gates or reorders the underlying work. */
 private enum class ProcessingStage { LANDMARKS, SYMMETRY, AI_REVIEW, DONE }
 
 @Composable
-fun ResultScreen(onDone: () -> Unit, onViewExplanation: () -> Unit = {}, onViewDigitalTwin: () -> Unit = {}) {
+fun ResultScreen(
+    onDone: () -> Unit,
+    onViewExplanation: () -> Unit = {},
+    onViewDigitalTwin: () -> Unit = {},
+    onOpenReport: (Int) -> Unit = {}
+) {
     val context = LocalContext.current
     var isLoading by remember { mutableStateOf(true) }
     var result by remember { mutableStateOf(ScreenResult()) }
@@ -86,12 +107,22 @@ fun ResultScreen(onDone: () -> Unit, onViewExplanation: () -> Unit = {}, onViewD
     var liveFrame by remember { mutableStateOf<Bitmap?>(null) }
     var liveLandmarks by remember { mutableStateOf<List<NormalizedLandmark>?>(null) }
     var liveRegions by remember { mutableStateOf<List<FaiCalculator.RegionAsymmetry>>(emptyList()) }
+    var savedRecordId by remember { mutableStateOf<Int?>(null) }
 
     LaunchedEffect(Unit) {
         val imageBitmap = CapturedImageHolder.bitmap
         val videoFile = CapturedVideoHolder.videoFile
 
         if (imageBitmap == null && videoFile == null) {
+            // Coming back to this screen (e.g. from "View details"): reuse the finished result.
+            val cached = ResultCache.outcome
+            if (cached != null) {
+                result = cached
+                savedRecordId = ResultCache.recordId
+                isLoading = false
+                stage = ProcessingStage.DONE
+                return@LaunchedEffect
+            }
             result = ScreenResult(error = "No image or video found. Please try again.")
             isLoading = false
             return@LaunchedEffect
@@ -207,6 +238,7 @@ fun ResultScreen(onDone: () -> Unit, onViewExplanation: () -> Unit = {}, onViewD
         }
 
         val patientId = SelectedPatientHolder.patientId
+        var newRecordId: Int? = null
         if (outcome.grade != null && patientId != null) {
             val gradeLabel = when (outcome.grade) {
                 1 -> "Normal"
@@ -217,22 +249,72 @@ fun ResultScreen(onDone: () -> Unit, onViewExplanation: () -> Unit = {}, onViewD
             }
             val confidence = outcome.probabilities[outcome.grade] ?: 0.0
             fun pct(region: String) = outcome.regions.firstOrNull { it.region == region }?.asymmetryPercent ?: 0.0
-            val record = AssessmentRecord(
-                patientId = patientId,
-                timestamp = System.currentTimeMillis(),
-                grade = outcome.grade,
-                gradeLabel = gradeLabel,
-                faiValue = if (outcome.regions.isNotEmpty()) outcome.regions.map { it.asymmetryPercent }.average() else 0.0,
-                confidence = confidence,
-                eyeAsymmetry = pct("eye"),
-                mouthAsymmetry = pct("mouth"),
-                browAsymmetry = pct("brow"),
-                cheekAsymmetry = pct("cheek"),
-                jawAsymmetry = pct("jaw"),
-                topRegionsCsv = outcome.xaiBullets.joinToString(","),
-                xaiExplanation = outcome.xaiSummary
-            )
-            AppDatabase.getDatabase(context).assessmentDao().insert(record)
+
+            try {
+                // Built key by key (not JSONObject(map)) to avoid Kotlin's constructor ambiguity.
+                val probsObj = JSONObject()
+                for ((g, p) in outcome.probabilities) {
+                    probsObj.put(g.toString(), p)
+                }
+                val probsJson = probsObj.toString()
+
+                val limeImportanceJson = outcome.limeResult?.let { lime ->
+                    val obj = JSONObject()
+                    fun asNumber(x: Any?): Double? = when (x) {
+                        is Number -> x.toDouble()
+                        is String -> x.toDoubleOrNull()
+                        else -> null
+                    }
+                    for ((k, v) in lime.regionImportance) {
+                        val key: Any? = k
+                        val value: Any? = v
+                        val numericValue = asNumber(value)
+                        if (numericValue != null) {
+                            obj.put(key.toString(), numericValue)
+                        } else {
+                            // Some layouts store the number as the key and the label as the value.
+                            val numericKey = asNumber(key)
+                            if (numericKey != null && value != null) obj.put(value.toString(), numericKey)
+                        }
+                    }
+                    obj.toString()
+                } ?: ""
+
+                val record = AssessmentRecord(
+                    patientId = patientId,
+                    timestamp = System.currentTimeMillis(),
+                    grade = outcome.grade,
+                    gradeLabel = gradeLabel,
+                    faiValue = if (outcome.regions.isNotEmpty()) outcome.regions.map { it.asymmetryPercent }.average() else 0.0,
+                    confidence = confidence,
+                    eyeAsymmetry = pct("eye"),
+                    mouthAsymmetry = pct("mouth"),
+                    browAsymmetry = pct("brow"),
+                    cheekAsymmetry = pct("cheek"),
+                    jawAsymmetry = pct("jaw"),
+                    topRegionsCsv = outcome.xaiBullets.joinToString(","),
+                    xaiExplanation = outcome.xaiSummary,
+                    probabilitiesJson = probsJson,
+                    limeSummary = outcome.limeResult?.summarySentence ?: "",
+                    limeImportanceJson = limeImportanceJson,
+                    limeFitQuality = outcome.limeResult?.localModelFitQuality?.toDouble() ?: 0.0
+                )
+
+                val db = AppDatabase.getDatabase(context)
+                newRecordId = db.assessmentDao().insert(record).toInt()
+
+                // Keep exactly two images per patient: initial (written once) and latest (overwritten).
+                val frame = outcome.analyzedFrame
+                if (frame != null) {
+                    val patient = db.patientDao().getById(patientId)
+                    val (initialPath, latestPath) =
+                        PatientImageStore.save(context, patientId, frame, patient?.initialImagePath)
+                    db.patientDao().setImagePaths(patientId, initialPath, latestPath)
+                }
+            } catch (e: Exception) {
+                // Saving must never take the app down; the on-screen result still works.
+                android.util.Log.e("ResultScreen", "Saving assessment/images failed", e)
+            }
         }
 
         // Hand the analyzed frame + landmarks to the XAI screen's transient holder rather than
@@ -249,6 +331,9 @@ fun ResultScreen(onDone: () -> Unit, onViewExplanation: () -> Unit = {}, onViewD
         XaiDataHolder.scanQuality = outcome.scanQuality
 
         result = outcome
+        savedRecordId = newRecordId
+        ResultCache.outcome = outcome
+        ResultCache.recordId = newRecordId
         isLoading = false
         stage = ProcessingStage.DONE
         if (outcome.analyzedFrame != null) {
@@ -259,7 +344,7 @@ fun ResultScreen(onDone: () -> Unit, onViewExplanation: () -> Unit = {}, onViewD
         CapturedVideoHolder.clear()
     }
 
-    Column(
+     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(clinicalBackgroundBrush())
@@ -284,7 +369,8 @@ fun ResultScreen(onDone: () -> Unit, onViewExplanation: () -> Unit = {}, onViewD
                     framesUsed = result.framesUsed,
                     explanation = result.explanation,
                     onViewExplanation = onViewExplanation,
-                    onViewDigitalTwin = onViewDigitalTwin
+                    onViewDigitalTwin = onViewDigitalTwin,
+                    onOpenReport = savedRecordId?.let { id -> { onOpenReport(id) } }
                 )
                 else -> LandmarkMappingState(liveLandmarks)
             }
@@ -294,6 +380,7 @@ fun ResultScreen(onDone: () -> Unit, onViewExplanation: () -> Unit = {}, onViewD
         SecondaryButton(
             text = "Back to home",
             onClick = {
+                ResultCache.clear()
                 XaiDataHolder.clear()
                 onDone()
             },
@@ -468,7 +555,8 @@ private fun ResultState(
     framesUsed: Int,
     explanation: String,
     onViewExplanation: () -> Unit,
-    onViewDigitalTwin: () -> Unit
+    onViewDigitalTwin: () -> Unit,
+    onOpenReport: (() -> Unit)?
 ) {
     val gradeColor = AppColors.gradeColor(grade)
     val gradeLabel = when (grade) {
@@ -516,7 +604,7 @@ private fun ResultState(
         Spacer(modifier = Modifier.height(8.dp))
         Text(
             "Assessment confidence: ${"%.0f".format(confidence * 100)}%" +
-                if (framesUsed > 1) " · averaged across $framesUsed frames" else "",
+                    if (framesUsed > 1) " · averaged across $framesUsed frames" else "",
             style = MaterialTheme.typography.bodySmall,
             color = AppColors.TextSecondary,
             modifier = Modifier.align(Alignment.CenterHorizontally)
@@ -563,6 +651,15 @@ private fun ResultState(
             Spacer(modifier = Modifier.width(8.dp))
             Text("Recovery trend", style = MaterialTheme.typography.labelLarge, color = AppColors.TextOnPrimary)
         }
+    }
+
+    if (onOpenReport != null) {
+        Spacer(modifier = Modifier.height(10.dp))
+        PrimaryButton(
+            text = "Full report & PDF",
+            onClick = onOpenReport,
+            modifier = Modifier.fillMaxWidth()
+        )
     }
 
     Spacer(modifier = Modifier.height(18.dp))

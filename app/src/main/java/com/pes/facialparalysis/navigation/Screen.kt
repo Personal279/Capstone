@@ -12,4 +12,9 @@ sealed class Screen(val route: String) {
     object UploadPreview : Screen("upload_preview")
     object XaiExplanation : Screen("xai_explanation")
     object DigitalTwin : Screen("digital_twin")
+
+    /** Full saved report for one assessment. Open with RecordDetail.create(recordId). */
+    object RecordDetail : Screen("record_detail/{recordId}") {
+        fun create(recordId: Int) = "record_detail/$recordId"
+    }
 }

@@ -159,9 +159,10 @@ fun HomeScreen(
                         )
                     }
                     Spacer(modifier = Modifier.height(12.dp))
-                    PrivacyRow("Images never leave your device")
+                    PrivacyRow("Images stay on this device unless you choose to share")
                     PrivacyRow("Fully offline, on-device analysis")
-                    PrivacyRow("Temporary files deleted after processing")
+                    PrivacyRow("Images are stored privately inside the app")
+                    PrivacyRow("Your permission is asked every time before a report is created")
                 }
             }
 

@@ -2,9 +2,11 @@ package com.pes.facialparalysis.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.pes.facialparalysis.HomeScreen
 import com.pes.facialparalysis.ui.screens.CaptureScreen
 import com.pes.facialparalysis.ui.screens.HistoryScreen
@@ -16,6 +18,8 @@ import com.pes.facialparalysis.ui.screens.XaiExplanationScreen
 import com.pes.facialparalysis.ui.screens.DigitalTwinScreen
 import com.pes.facialparalysis.ui.screens.SplashScreen
 import com.pes.facialparalysis.ui.screens.OnboardingScreen
+import com.pes.facialparalysis.ui.screens.RecordDetailScreen
+
 @Composable
 fun AppNavHost(
     navController: NavHostController = rememberNavController()
@@ -118,6 +122,9 @@ fun AppNavHost(
                 },
                 onViewDigitalTwin = {
                     navController.navigate(Screen.DigitalTwin.route)
+                },
+                onOpenReport = { recordId ->
+                    navController.navigate(Screen.RecordDetail.create(recordId))
                 }
             )
         }
@@ -135,7 +142,24 @@ fun AppNavHost(
         }
 
         composable(Screen.History.route) {
-            HistoryScreen()
+            HistoryScreen(
+                onRecordClick = { record ->
+                    navController.navigate(Screen.RecordDetail.create(record.id))
+                },
+                onStartNewAssessment = {
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        composable(
+            route = Screen.RecordDetail.route,
+            arguments = listOf(navArgument("recordId") { type = NavType.IntType })
+        ) { entry ->
+            RecordDetailScreen(
+                recordId = entry.arguments?.getInt("recordId") ?: -1,
+                onBack = { navController.popBackStack() }
+            )
         }
     }
 }
